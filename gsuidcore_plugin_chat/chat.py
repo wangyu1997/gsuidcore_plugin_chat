@@ -7,11 +7,12 @@ from gsuid_core.bot import Bot
 from gsuid_core.sv import SV
 from gsuid_core.models import Event
 from .utils import *
+from gsuid_core.logger import logger
 
 regular_sv = SV(
     '普通聊天',
     pm=3,  
-    priority=17,
+    priority=2000,
     enabled=True,
     black_list=[],
     area='ALL'
@@ -28,27 +29,37 @@ async def reserve_openai(bot:Bot, event:Event):
     
 
 # TODO at_me 功能
-# @regular_sv.on_command(('tome'), block=True)
-# async def at_test(bot:Bot, event:Event):
-#     # new_chat(bot,event)
+@regular_sv.on_command((''), block=True, to_me=True)
+async def at_test(bot:Bot, event:Event):
+        
+    msg = event.text.strip()
     
-#     logger.info(event.at_list)
-#     logger.info(event.at)
+    if event.bot_id == 'ntchat':
+      # 粗暴
+      if ' ' not in msg and "@" in msg:
+        msg = ''
+      else:
+        msg = re.sub(r"@.*? ", "", msg)
+    
+    if (
+      (not msg)
+      or msg.isspace()
+    ):
+      await bot.send(await rand_poke())
+      return
+    if msg in nonsense:
+      await bot.send(await rand_hello())
+      return
 
-#     logger.info(event.text)
-    
-#     await space_handle(bot,event)
-    
-    
-#     msg = re.sub(r"@.*? ", "", event.text)
-#     logger.info(bot,event)
-
-
-#     await bot.send("at test")
+    await regular_reply(bot, event)
 
 
 
 @regular_sv.on_prefix(('chat'), block=True,)
+async def _(bot:Bot,event:Event):
+  await regular_reply(bot, event)
+
+
 async def regular_reply(bot:Bot,event:Event):
   """普通回复"""
   if not reply_private and event.user_type == 'direct':

@@ -54,22 +54,10 @@ async def pretreatment(bot:Bot, event:Event, msg:str):
     uid = event.user_id
     if not reply_private and event.user_type == 'direct':
         return      
-        
-    if (
-      (not msg)
-      or msg.isspace()
-      or msg in nonsense
-    ):
-      await bot.send(await rand_hello())
-      return
       
     if not cookie_allow:
         await bot.send("cookie未设置, 无法访问")
         return
-      
-    if msg in nonsense:
-        await bot.send(await rand_hello())
-        return 
     
     if uid not in bing_chat_dict:
         await newbing_new_chat(bot, event)
@@ -85,6 +73,16 @@ async def pretreatment(bot:Bot, event:Event, msg:str):
 async def bing_handle(bot:Bot, event:Event): 
     uid = event.user_id  
     msg = event.text.strip() 
+    
+    if (
+      (not msg)
+      or msg.isspace()
+    ):
+      await bot.send(await rand_poke())
+      return
+    if msg in nonsense:
+      await bot.send(await rand_hello())
+      return
 
     await pretreatment(bot,event,msg)      
 
