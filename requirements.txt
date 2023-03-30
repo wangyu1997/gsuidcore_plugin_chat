@@ -1,0 +1,7 @@
+--index-url https://mirrors.bfsu.edu.cn/pypi/web/simple
+
+EdgeGPT==0.1.12.1
+Pillow==9.4.0
+pydantic==1.10.6
+requests==2.28.2
+revChatGPT==4.0.11
