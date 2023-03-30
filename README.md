@@ -1,10 +1,20 @@
+<p align="center">
+  <a href="https://github.com/KimigaiiWuyi/GenshinUID/"><img src="https://s2.loli.net/2023/03/25/bareSdYcsmRPOyZ.png" width="256" height="256" alt="GenshinUID"></a>
+</p>
+<h1 align = "center">GenshinUID Core Chat 1.0</h1>
+<h4 align = "center">✨支持OneBot(QQ)、QQ频道、微信、开黑啦、Telegram的全功能原神Bot插件✨</h4>
 
-> 本插件fork自[nonebot_plugin_smart_reply](https://github.com/Special-Week/nonebot_plugin_smart_reply)。
+<div>
+  <img src="https://i.328888.xyz/2023/03/30/iCsDVw.md.png" width="24%" height="auto">
+  <img src="https://i.328888.xyz/2023/03/30/iCsy3q.md.png" width="24%" height="auto">
+  <img src="https://i.328888.xyz/2023/03/30/iCsUba.md.png" width="24%" height="auto">
+  <img src="https://i.328888.xyz/2023/03/30/iCsn6x.md.jpeg" width="24%" height="auto">
+</div>
 
 
-# 基于gsuid_core的智能(障)回复插件(理论兼容多个平台)
+# 基于gsuid_core的智能聊天插件(理论兼容多个平台)
 
-    问问提前请务必看完readme, 这是一个融合了openai, newbing, 词库的智障回复插件
+    使用前请务必看完readme, 这是一个融合了openai, newbing, 词库的智障回复插件
 
 
 ## 功能
@@ -16,12 +26,13 @@
 
 ### 安装方式:
 
+
     cd gsuid_core/gsuid_core/plugins
     git clone https://github.com/wangyu1997/gsuidcore_plugin_chat.git
     cd gsuidcore_plugin_chat.git
     poetry run pip install -r requirements.txt
+    修改`gsuidcore_plugin_chat/data/`下的`config.json`和`cookies`文件夹
 
-修改`gsuidcore_plugin_chat/data/`下的`config.json`和`cookies`文件夹
 
 
 ### config配置项:
@@ -37,8 +48,20 @@
 |bing_or_openai_proxy|str       |""         |bing_or_openai_proxy = "http://127.0.0.1:1081" |    openai或者newbing的代理, 配置详细请看下文|        
 |newbing_style    |str             |creative   |newbing_style = "creative"             |newbing的风格, "creative", "balanced", "precise", 三选一, 乱填报错我不管|
 
-config.json完全不配置不影响插件运行, 但是部分功能会无法使用(openai, newbing)
+> config.json完全不配置不影响插件运行, 但是部分功能会无法使用(openai, newbing)
 
+
+## 关于普通聊天:
+
+    基于公共api获取回复，如果不配置openai和bing，不影响本功能使用。
+    简单对话自动调用默认配置回复（下同）。
+
+    用法：
+        1. @bot + 内容 （wx @bot后需要跟空格）
+        2. chat + 内容
+        3. 重置chat
+    
+    默认维护最近5段对话
 
 ​       
 ## 关于openai:
@@ -127,3 +150,6 @@ openai = SV(
 )
 @openai.on_fullmatch('重置openai', block=True,)
 @openai.on_prefix('openai', block=True,)
+```
+
+> - [nonebot_plugin_smart_reply](https://github.com/Special-Week/nonebot_plugin_smart_reply) - 插件原始代码来自于它

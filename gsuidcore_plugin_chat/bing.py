@@ -28,10 +28,7 @@ bing_cookies_files: list = [
     for file in config.smart_reply_path.rglob("*.json")
     if file.stem.startswith("cookie")
 ]
-from gsuid_core.logger import logger
-logger.info('12345')
 
-logger.info(bing_cookies_files)
 try:
     bing_cookies: list = [
         json.load(open(file, "r", encoding="utf-8")) for file in bing_cookies_files
