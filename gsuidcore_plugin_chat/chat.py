@@ -1,13 +1,11 @@
 import re 
 
 import time
-from pathlib import Path
 
 from gsuid_core.bot import Bot
 from gsuid_core.sv import SV
 from gsuid_core.models import Event
 from .utils import *
-from gsuid_core.logger import logger
 
 regular_sv = SV(
     '普通聊天',
@@ -52,7 +50,23 @@ async def at_test(bot:Bot, event:Event):
       return
 
     await regular_reply(bot, event)
+    
 
+# # TODO at_me 功能
+# @regular_sv.on_command(('语音测试'), block=True)
+# async def voice_test(bot:Bot, event:Event):
+#     audio_file = Path(audio_path)/random.choice(audio_list)
+#     logger.info(audio_file)
+#     await bot.send('voice://https://genshin.azurewebsites.net/api/speak?format=mp3&text=%E5%93%8E%E5%93%9F%E4%BD%A0%E5%9C%A8%E5%B9%B2%E5%98%9B?&id=1&code=Tgg-biYv-KcR7DYQ7DTn252NNiVjm3k7Pcocl6jzY-PuAzFuyqRNxg==')
+
+
+# # api for other plugins
+# async def get_record(url):
+#     async with httpx.AsyncClient() as client:
+#         resp = await client.get(url, timeout=120)
+#     resp.raise_for_status()
+#     voice = resp.content
+#     return MessageSegment.record(voice)
 
 
 @regular_sv.on_prefix(('chat'), block=True,)

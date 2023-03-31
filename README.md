@@ -22,6 +22,7 @@
     普通对话调用简易版chatgpt
     接入了new bing的接口, 详情见下文
     接入了openai的接口, 详情见下文
+    加入了网页截图功能
 
 
 ### 安装方式:
@@ -49,6 +50,13 @@
 |newbing_style    |str             |creative   |newbing_style = "creative"             |newbing的风格, "creative", "balanced", "precise", 三选一, 乱填报错我不管|
 
 > config.json完全不配置不影响插件运行, 但是部分功能会无法使用(openai, newbing)
+
+## 关于获取网页截图:
+
+    如果playwright出现报错的话，请自行升级内核或者更换playwright版本
+    
+    用法：
+        发送： 网页截图 url
 
 
 ## 关于普通聊天:
