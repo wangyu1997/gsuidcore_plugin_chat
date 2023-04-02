@@ -29,7 +29,9 @@ async def reserve_openai(bot:Bot, event:Event):
 # TODO at_me 功能
 @regular_sv.on_command((''), block=True, to_me=True)
 async def at_test(bot:Bot, event:Event):
-        
+    if not reply_private and event.user_type == 'direct':
+      return 
+    
     msg = event.text.strip()
     
     if event.bot_id == 'ntchat':
@@ -76,8 +78,7 @@ async def _(bot:Bot,event:Event):
 
 async def regular_reply(bot:Bot,event:Event):
   """普通回复"""
-  if not reply_private and event.user_type == 'direct':
-    return  
+  
   uid = event.user_id
   msg = event.text
    
@@ -85,14 +86,14 @@ async def regular_reply(bot:Bot,event:Event):
   msg = re.sub(r"\[.*?\]", "", msg)
   if uid not in chat_dict:  
     new_chat(bot,event)
-    await bot.send("chat新会话已创建,最多维持5段对话")
+    await bot.send("chat新会话已创建,最多维持10段对话")
   
   if chat_dict[uid]["isRunning"]:  
     
       await bot.send("当前会话正在运行中, 请稍后再发起请求")
       return
   chat_dict[uid]["isRunning"] = True 
-  chat_dict[uid]['session'] = chat_dict[uid]['session'][:5]
+  chat_dict[uid]['session'] = chat_dict[uid]['session'][:10]
   session =  chat_dict[uid]['session']
   result = await get_chat_result(msg, session)
   chat_dict[uid]["sessions_number"]+=1 

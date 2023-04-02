@@ -43,7 +43,7 @@ cookie_allow = bool(bing_cookies)
 
 @bing.on_fullmatch('重置bing', block=True,)
 async def reserve_bing(bot: Bot, event: Event) -> None:
-    await newbing_new_chat(event=event)
+    await newbing_new_chat(bot, event=event)
     await bot.send("newbing会话已重置")
 
 
