@@ -71,7 +71,7 @@ def normal_chat(text,session):
     if not session:
         session = []
         
-    prompt = '\n'.join([f"Human: {human} \n AI: {ai}" for (human,ai) in session])
+    prompt = '\n'.join([f"旅行者: {human} \n Paimon: {ai}" for (human,ai) in session])
     data = {
         "prompt": prompt + f"\nHuman: {text} \n AI: ",
         "tokensLength": 0

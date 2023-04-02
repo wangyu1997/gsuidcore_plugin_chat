@@ -10,6 +10,16 @@ from .utils import *
 regular_sv = SV(
     '普通聊天',
     pm=3,  
+    priority=22,
+    enabled=True,
+    black_list=[],
+    area='ALL'
+)
+
+
+at_sv = SV(
+    'at聊天',
+    pm=3,  
     priority=2000,
     enabled=True,
     black_list=[],
@@ -22,15 +32,13 @@ chat_dict: dict = {}
 @regular_sv.on_fullmatch('重置chat', block=True,)
 async def reserve_openai(bot:Bot, event:Event):
     new_chat(bot,event)
-    await bot.send("chat会话已重置,最多维持5段对话")
+    await bot.send("chat会话已重置,最多维持10段对话")
     
     
 
 # TODO at_me 功能
-@regular_sv.on_command((''), block=True, to_me=True)
+@at_sv.on_command((''), block=True, to_me=True)
 async def at_test(bot:Bot, event:Event):
-    if not reply_private and event.user_type == 'direct':
-      return 
     
     msg = event.text.strip()
     
@@ -82,8 +90,6 @@ async def regular_reply(bot:Bot,event:Event):
   uid = event.user_id
   msg = event.text
    
-  # 去掉带中括号的内容(去除cq码)
-  msg = re.sub(r"\[.*?\]", "", msg)
   if uid not in chat_dict:  
     new_chat(bot,event)
     await bot.send("chat新会话已创建,最多维持10段对话")
@@ -99,12 +105,14 @@ async def regular_reply(bot:Bot,event:Event):
   chat_dict[uid]["sessions_number"]+=1 
   if result is None:
       data = f"抱歉，{bot_nickname}暂时不知道怎么回答你呢, 试试使用openai或者bing吧~"
+      await reserve_openai(bot, event)
   else:
+    result = result.replace('⚠️您当前访问的网页或服务可能涉及盗版，为了保证您获得最佳体验，请前往 https://aigcfun.com/app-download 下载或者更新最新版本的APP','')
     chat_dict[uid]['session'].append((msg,result))
     data = result
   chat_dict[uid]["isRunning"] = False 
-  sessions_number = chat_dict[uid]["sessions_number"]  
-  data += f"\n\n当前会话: {sessions_number}  字数异常请发送\"重置chat\"" 
+  # sessions_number = chat_dict[uid]["sessions_number"]  
+  # data += f"\n\n当前会话: {sessions_number}  字数异常请发送\"重置chat\"" 
   await bot.send(data)
 
     

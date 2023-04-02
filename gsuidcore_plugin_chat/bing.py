@@ -47,10 +47,8 @@ async def reserve_bing(bot: Bot, event: Event) -> None:
     await bot.send("newbing会话已重置")
 
 
-async def pretreatment(bot:Bot, event:Event, msg:str):  
-    uid = event.user_id
-    if not reply_private and event.user_type == 'direct':
-        return      
+async def pretreatment(bot:Bot, event:Event):  
+    uid = event.user_id  
       
     if not cookie_allow:
         await bot.send("cookie未设置, 无法访问")
@@ -71,6 +69,9 @@ async def bing_handle(bot:Bot, event:Event):
     uid = event.user_id  
     msg = event.text.strip() 
     
+    if not reply_private and event.user_type == 'direct':
+        return    
+    
     if (
       (not msg)
       or msg.isspace()
@@ -80,8 +81,8 @@ async def bing_handle(bot:Bot, event:Event):
     if msg in nonsense:
       await bot.send(await rand_hello())
       return
-
-    await pretreatment(bot,event,msg)      
+  
+    await pretreatment(bot=bot, event=event)     
 
     chatbot: Chatbot = bing_chat_dict[uid]["chatbot"]  
     style: str = bing_chat_dict[uid]["model"] 
