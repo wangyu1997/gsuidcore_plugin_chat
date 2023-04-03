@@ -9,7 +9,7 @@ from .utils import *
 
 regular_sv = SV(
     '普通聊天',
-    pm=3,  
+    pm=6,  
     priority=22,
     enabled=True,
     black_list=[],
@@ -19,7 +19,7 @@ regular_sv = SV(
 
 at_sv = SV(
     'at聊天',
-    pm=3,  
+    pm=6,  
     priority=2000,
     enabled=True,
     black_list=[],
@@ -95,7 +95,6 @@ async def regular_reply(bot:Bot,event:Event):
     await bot.send("chat新会话已创建,最多维持10段对话")
   
   if chat_dict[uid]["isRunning"]:  
-    
       await bot.send("当前会话正在运行中, 请稍后再发起请求")
       return
   chat_dict[uid]["isRunning"] = True 
@@ -107,7 +106,8 @@ async def regular_reply(bot:Bot,event:Event):
       data = f"抱歉，{bot_nickname}暂时不知道怎么回答你呢, 试试使用openai或者bing吧~"
       await reserve_openai(bot, event)
   else:
-    result = result.replace('⚠️您当前访问的网页或服务可能涉及盗版，为了保证您获得最佳体验，请前往 https://aigcfun.com/app-download 下载或者更新最新版本的APP','')
+    if '⚠️您当前访问的网页或服务可能涉及盗版' in result:
+      result = result.split('⚠️您当前访问的网页或服务可能涉及盗版')[0]
     chat_dict[uid]['session'].append((msg,result))
     data = result
   chat_dict[uid]["isRunning"] = False 

@@ -26,7 +26,7 @@ else:
 
 openai = SV(
     'OPENAI',
-    pm=3, 
+    pm=6, 
     priority=13,
     enabled=True,
     black_list=[],

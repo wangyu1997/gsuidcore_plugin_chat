@@ -97,7 +97,6 @@ async def get_chat_result(text: str,session: None) -> str:
         loop = asyncio.get_event_loop()     # 调用ask会阻塞asyncio
         data = await loop.run_in_executor(None, partial(normal_chat, text, session))
     except Exception as e: 
-        logger.info(str(e))
         data = None
   
     return data

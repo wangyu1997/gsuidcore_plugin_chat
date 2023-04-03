@@ -13,7 +13,7 @@ from .config import config
 
 bing = SV(
     'NEWBING',
-    pm=3, 
+    pm=6, 
     priority=14,
     enabled=True,
     black_list=[],

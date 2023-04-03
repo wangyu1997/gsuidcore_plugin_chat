@@ -106,7 +106,7 @@ async def get_new_page(**kwargs) -> AsyncIterator[Page]:
         
 web_sv = SV(
     '网页截图',
-    pm=3,  
+    pm=6,  
     priority=1400,
     enabled=True,
     black_list=[],
