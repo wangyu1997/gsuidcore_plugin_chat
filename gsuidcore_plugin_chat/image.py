@@ -24,7 +24,7 @@ METHOD = 'flickr.photos.search'
 API_KEY = config.flickr_api
 
 
-@image_sv.on_keyword('图片', block=True,)
+@image_sv.on_keyword(('图片','照片'), block=True,)
 async def reserve_openai(bot:Bot, event:Event):
     text = event.text
     if "张" not in text:
