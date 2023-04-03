@@ -71,12 +71,21 @@ def normal_chat(text,session):
     if not session:
         session = []
         
-    prompt = '\n'.join([f"旅行者: {human} \n Paimon: {ai}" for (human,ai) in session])
+    key = config.normal_chat_key
+    
+    prompt = [{'role': 'system', 'content': '你的名字叫Paimon，是来自提瓦特大陆的小助手，和你对话的是旅行者。'}]
+    for (human, ai) in session:
+        prompt.append({'role': 'user', 'content': human})
+        prompt.append({'role': 'assistant', 'content': ai})
+    
+    prompt.append({'role': 'user', 'content': text})    
     data = {
-        "prompt": prompt + f"\nHuman: {text} \n AI: ",
-        "tokensLength": 0
+        "messages": prompt,  
+        "tokensLength": 0,
+        "model": "gpt-3.5-turbo"
     }
-    url = "https://api.forchange.cn/"
+    
+    url = f"https://api.aigcfun.com/api/v1/text?key={key}"
 
     headers = {
         'Content-Type': "application/json",
@@ -93,11 +102,11 @@ async def get_chat_result(text: str,session: None) -> str:
     #     for key in keys:
     #         if key in text:
     #             return random.choice(anime_thesaurus[key]).replace("你", nickname)
-    try:
+    if True:
         loop = asyncio.get_event_loop()     # 调用ask会阻塞asyncio
         data = await loop.run_in_executor(None, partial(normal_chat, text, session))
-    except Exception as e: 
-        data = None
+    # except Exception as e: 
+    #     data = str(e)
   
     return data
 

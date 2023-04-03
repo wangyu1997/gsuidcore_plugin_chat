@@ -27,6 +27,7 @@ at_sv = SV(
 )
 
 chat_dict: dict = {}   
+key = config.normal_chat_key
 
 
 @regular_sv.on_fullmatch('重置chat', block=True,)
@@ -87,18 +88,22 @@ async def _(bot:Bot,event:Event):
 async def regular_reply(bot:Bot,event:Event):
   """普通回复"""
   
+  if not key:
+    await bot.send('请配置key之后再来和我聊天哦.')
+    return
+  
   uid = event.user_id
   msg = event.text
    
   if uid not in chat_dict:  
     new_chat(bot,event)
-    await bot.send("chat新会话已创建,最多维持10段对话")
+    # await bot.send("chat新会话已创建,最多维持10段对话")
   
   if chat_dict[uid]["isRunning"]:  
       await bot.send("当前会话正在运行中, 请稍后再发起请求")
       return
   chat_dict[uid]["isRunning"] = True 
-  chat_dict[uid]['session'] = chat_dict[uid]['session'][:10]
+  # chat_dict[uid]['session'] = chat_dict[uid]['session'][:10]
   session =  chat_dict[uid]['session']
   result = await get_chat_result(msg, session)
   chat_dict[uid]["sessions_number"]+=1 

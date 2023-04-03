@@ -22,7 +22,8 @@
     普通对话调用简易版chatgpt
     接入了new bing的接口, 详情见下文
     接入了openai的接口, 详情见下文
-    加入了网页截图功能
+    加入了网页截图功能, 详情见下文
+    加入了Flickr以文搜图的功能, 详情见下文
 
 
 ### 安装方式:
@@ -48,6 +49,9 @@
 | newbing_cd_time    | int     |600        |newbing_cd_time = 114             |    newbing创建会话的cd                       |
 |bing_or_openai_proxy|str       |""         |bing_or_openai_proxy = "http://127.0.0.1:1081" |    openai或者newbing的代理, 配置详细请看下文|        
 |newbing_style    |str             |creative   |newbing_style = "creative"             |newbing的风格, "creative", "balanced", "precise", 三选一, 乱填报错我不管|
+| normal_chat_key   | string         |我     |normal_chat_key = "xskjd"                  |      免费chat的api                         |
+| flickr_api   | string         |我     |flickr_api = "xsds"                  |      flickr的api                         |
+
 
 > config.json完全不配置不影响插件运行, 但是部分功能会无法使用(openai, newbing)
 
@@ -64,13 +68,23 @@
     基于公共api获取回复，如果不配置openai和bing，不影响本功能使用。
     简单对话自动调用默认配置回复（下同）。
 
+    api key的获取方式：https://www.pandapy.com/
+
     用法：
         1. @bot + 内容 （wx @bot后需要跟空格）
         2. chat + 内容
         3. 重置chat
-    
-    默认维护最近5段对话
 
+
+## 关于图片搜索:
+
+    基于Flickr的关键词搜索，默认搜索500张并随机发送三张。
+
+    api key的获取方式: https://www.flickr.com/services/apps/create/noncommercial/
+
+    用法：
+        1. 发几张xxx的图片
+        2. 来几张xxx的图片
 ​       
 ## 关于openai:
 
@@ -121,43 +135,5 @@
 
 
 
-
-
-响应器:
-```python
-# 使用普通chat的响应器
-regular_sv = SV(
-    '普通聊天',
-    pm=3,  
-    priority=17,
-    enabled=True,
-    black_list=[],
-    area='ALL'
-)
-@regular_sv.on_fullmatch('重置chat', block=True,)
-@regular_sv.on_prefix(('chat'), block=True,)
-# 使用bing的响应器
-bing = SV(
-    'NEWBING',
-    pm=3, 
-    priority=14,
-    enabled=True,
-    black_list=[],
-    area='ALL'
-)
-@bing.on_fullmatch('重置bing', block=True,)
-@bing.on_prefix('bing', block=True,)  
-# 使用openai的响应器
-openai = SV(
-    'OPENAI',
-    pm=3, 
-    priority=13,
-    enabled=True,
-    black_list=[],
-    area='ALL'
-)
-@openai.on_fullmatch('重置openai', block=True,)
-@openai.on_prefix('openai', block=True,)
-```
 
 > - [nonebot_plugin_smart_reply](https://github.com/Special-Week/nonebot_plugin_smart_reply) - 插件原始代码来自于它
