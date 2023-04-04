@@ -41,10 +41,20 @@ except Exception as e:
 
 cookie_allow = bool(bing_cookies)
 
-@bing.on_fullmatch('重置bing', block=True,)
+@bing.on_prefix('重置bing', block=True,)
 async def reserve_bing(bot: Bot, event: Event) -> None:
-    await newbing_new_chat(bot, event=event)
-    await bot.send("newbing会话已重置")
+    text = event.text.strip()
+    
+    style = config.newbing_style
+    if text == '准确':
+        style = 'precise'
+    elif text == "平衡":
+        style = 'balanced'
+    else:
+        style = "creative"
+        
+    await newbing_new_chat(bot, event=event, style=style)
+    await bot.send(f"newbing会话已重置, 当前对话模式为[{style}].")
 
 
 async def pretreatment(bot:Bot, event:Event):  
@@ -141,7 +151,7 @@ async def bing_handle(bot:Bot, event:Event):
             await bot.send(f"消息全被风控了, 这是捕获的异常: \n{str(eeee)}")
 
 
-async def newbing_new_chat(bot:Bot,event: Event) -> None:
+async def newbing_new_chat(bot:Bot,event: Event, style=config.newbing_style) -> None:
     current_time: int = int(time.time())
     user_id: str = str(event.user_id)
     if user_id in bing_chat_dict:
@@ -155,7 +165,7 @@ async def newbing_new_chat(bot:Bot,event: Event) -> None:
             return 
           
     bot = bingChatbot(cookies=random.choice(bing_cookies))  # 随机选择一个cookies创建一个Chatbot
-    bing_chat_dict[user_id] = {"chatbot": bot, "last_time": current_time, "model": config.newbing_style, "isRunning": False}
+    bing_chat_dict[user_id] = {"chatbot": bot, "last_time": current_time, "model": style, "isRunning": False}
 
 
 

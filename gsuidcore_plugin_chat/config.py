@@ -25,6 +25,7 @@ class Config(BaseSettings):
     superusers: Optional[Sequence[str]] = []
     normal_chat_key: str = ""
     flickr_api: str = ""
+    chat_proxy: str = ""
     
 
 config_json = json.loads(open(config_path,'r').read())

@@ -85,13 +85,21 @@ def normal_chat(text,session):
         "model": "gpt-3.5-turbo"
     }
     
+    proxies = {}
+    if config.chat_proxy:
+        proxies = {
+            'http': f"http://{config.chat_proxy}",
+            'http': f"http://{config.chat_proxy}"
+        }
+    
     url = f"https://api.aigcfun.com/api/v1/text?key={key}"
 
     headers = {
         'Content-Type': "application/json",
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
     }
-    res = requests.post(url, data=json.dumps(data), headers=headers).json()
+    
+    res = requests.post(url, data=json.dumps(data), headers=headers, proxies=proxies).json()
     return res["choices"][0]["text"].strip()
 
 

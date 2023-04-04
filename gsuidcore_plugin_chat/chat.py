@@ -38,7 +38,7 @@ async def reserve_openai(bot:Bot, event:Event):
     
 
 # TODO at_me 功能
-@at_sv.on_command((''), block=True, to_me=True)
+@at_sv.on_command('', block=True, to_me=True)
 async def at_test(bot:Bot, event:Event):
     
     msg = event.text.strip()
