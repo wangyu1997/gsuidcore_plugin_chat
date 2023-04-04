@@ -41,11 +41,18 @@ except Exception as e:
 
 cookie_allow = bool(bing_cookies)
 
-@bing.on_prefix('重置bing', block=True,)
+@bing.on_fullmatch('重置bing', block=True,)
+async def reserve_bing(bot: Bot, event: Event) -> None:    
+    style = config.newbing_style
+    await newbing_new_chat(bot, event=event, style=style)
+    await bot.send(f"newbing会话已重置, 当前对话模式为[{style}].")
+
+@bing.on_prefix('切换bing', block=True,)
 async def reserve_bing(bot: Bot, event: Event) -> None:
     text = event.text.strip()
     
     style = config.newbing_style
+    
     if text == '准确':
         style = 'precise'
     elif text == "平衡":
