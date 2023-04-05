@@ -5,12 +5,14 @@ from typing import Optional, Sequence
 from pydantic import BaseSettings
 
 module_path: Path = Path(__file__).parent
-data_path: Path= module_path /'data'
-config_path = data_path /'config.json'
+data_path: Path = module_path / 'data'
+config_path = data_path / 'config.json'
+setreo_path = data_path / 'stereo.data'
 keyword_path: Path = data_path / "resource/json/data.json"
 anime_thesaurus: dict = json.load(open(keyword_path, "r", encoding="utf-8"))
 audio_path: Path = data_path / "resource/audio"
 audio_list: list = os.listdir(audio_path)
+
 
 class Config(BaseSettings):
     bot_nickname: str = "我"
@@ -26,7 +28,7 @@ class Config(BaseSettings):
     normal_chat_key: str = ""
     flickr_api: str = ""
     chat_proxy: str = ""
-    
 
-config_json = json.loads(open(config_path,'r').read())
+
+config_json = json.loads(open(config_path, 'r').read())
 config = Config.parse_obj(config_json)
