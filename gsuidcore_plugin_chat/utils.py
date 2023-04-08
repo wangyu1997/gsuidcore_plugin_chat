@@ -100,7 +100,7 @@ async def normal_chat(text, session):
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
     }
 
-    async with httpx.AsyncClient(proxies=proxies) as client:
+    async with httpx.AsyncClient(verify=False, timeout=None, proxies=proxies) as client:
         res = await client.post(url, data=json.dumps(data), headers=headers)
         res = res.json()
         return res["choices"][0]["text"].strip()
@@ -108,10 +108,12 @@ async def normal_chat(text, session):
 
 async def get_chat_result(text: str, session: None) -> str:
     """从字典中返回结果"""
-    try:
+    if True:
         data = await normal_chat(text, session)
-    except Exception as _:
-        data = "请求失败，可能当前session对话达到上限，请使用[重置chat]重置会话，或尝试使用bing xx或openai xx来询问bing或者openai吧"
+    # except Exception as e:
+    #     from gsuid_core.logger import logger
+    #     logger.info(f'DEBUG DEBUG {str(e)}')
+    #     data = "请求失败，可能当前session对话达到上限，请使用[重置chat]重置会话，或尝试使用bing xx或openai xx来询问bing或者openai吧"
 
     return data
 
