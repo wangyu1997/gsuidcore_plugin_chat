@@ -1,6 +1,7 @@
 import re
 import json
 import random
+import httpx
 import asyncio
 import requests
 from functools import partial
@@ -68,7 +69,7 @@ async def rand_poke() -> str:
     return random.choice(poke__reply)
 
 
-def normal_chat(text, session):
+async def normal_chat(text, session):
     if not session:
         session = []
 
@@ -89,8 +90,7 @@ def normal_chat(text, session):
     proxies = {}
     if config.chat_proxy:
         proxies = {
-            'http': f"http://{config.chat_proxy}",
-            'http': f"http://{config.chat_proxy}"
+            'all://': f"http://{config.chat_proxy}"
         }
 
     url = f"https://api.aigcfun.com/api/v1/text?key={key}"
@@ -100,22 +100,17 @@ def normal_chat(text, session):
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
     }
 
-    res = requests.post(url, data=json.dumps(
-        data), headers=headers, proxies=proxies).json()
-    return res["choices"][0]["text"].strip()
+    async with httpx.AsyncClient(proxies=proxies) as client:
+        res = await client.post(url, data=json.dumps(data), headers=headers)
+        res = res.json()
+        return res["choices"][0]["text"].strip()
 
 
 async def get_chat_result(text: str, session: None) -> str:
     """从字典中返回结果"""
-    # if len(text) < 7:
-    #     keys = anime_thesaurus.keys()
-    #     for key in keys:
-    #         if key in text:
-    #             return random.choice(anime_thesaurus[key]).replace("你", nickname)
     try:
-        loop = asyncio.get_event_loop()     # 调用ask会阻塞asyncio
-        data = await loop.run_in_executor(None, partial(normal_chat, text, session))
-    except Exception as e:
+        data = await normal_chat(text, session)
+    except Exception as _:
         data = "请求失败，可能当前session对话达到上限，请使用[重置chat]重置会话，或尝试使用bing xx或openai xx来询问bing或者openai吧"
 
     return data
