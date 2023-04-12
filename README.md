@@ -102,9 +102,9 @@
     基于Web Image Search的关键词搜索，每天固定100次免费搜索。
 
     注意，Web Image Search对英文query支持好，为了更好的搜索，首先使用chatgpt默认的国内对齐英文实体，再进行查询。如果要使用本功能，请先配置chat功能。
-
+    
     api key的获取方式: https://rapidapi.com/contextualwebsearch/api/web-search
-​    
+
     用法：
         1. 搜索xxx
 
