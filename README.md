@@ -36,7 +36,7 @@
     poetry run pip install -r requirements.txt
     cd gsuidcore_plugin_chat/data
     cp config_template.json config.json
-    
+
     修改`gsuidcore_plugin_chat/data/`下的`config.json`和`cookies`文件夹
 
 
