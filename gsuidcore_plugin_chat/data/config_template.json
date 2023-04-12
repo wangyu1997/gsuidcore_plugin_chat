@@ -12,5 +12,6 @@
   "normal_chat_key": "xxx",
   "flickr_api": "xxx",
   "chat_proxy": "xxx:xxx:xx:xx:xxxx",
-  "rapid_api_key": "xxxxx"
+  "rapid_api_key": "xxxxx",
+  "bot_personality": false
 }

@@ -17,6 +17,8 @@ audio_list: list = os.listdir(audio_path)
 class Config(BaseSettings):
     bot_nickname: str = "我"
     smart_reply_path: Path = Path(f"{data_path}/cookies")
+    personality_path: Path = Path(f"{data_path}/personality.json")
+    bot_personality: bool = False
     ai_reply_private: bool = False
     openai_api_key: Optional[Sequence[str]]
     openai_max_tokens: int = 1000

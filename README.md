@@ -75,6 +75,8 @@
 
     注意：如果服务器在国外，并且使用了pandapy的服务，需要自己搭建国内http代理，并且配置chat_proxy
 
+    如果想使用人格预设功能，请先配置好`personality.json`，然后设置config中的bot_personality为true即可
+
     api key的获取方式：https://www.pandapy.com/
 
     用法：

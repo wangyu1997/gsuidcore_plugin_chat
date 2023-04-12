@@ -102,7 +102,17 @@ async def normal_chat(text, session):
     if not session:
         session = []
 
-    prompt = [{'role': 'system', 'content': '你的名字叫Paimon，是来自提瓦特大陆的小助手，和你对话的是旅行者。'}]
+    prompt = []
+    if config.bot_personality:
+        per_data = json.loads(open(config.personality_path, 'r').read())
+        prompt.append(
+            {'role': 'system', 'content': f'{per_data["system_prompt"].replace("_bot_name_", config.bot_nickname)}'})
+        for item in per_data['personality']:
+            prompt.append(
+                {'role': 'user', 'content': f'{item["user"].replace("_bot_name_", config.bot_nickname)}'})
+            prompt.append(
+                {'role': 'assistant', 'content': f'{item["ai"].replace("_bot_name_", config.bot_nickname)}'})
+
     for (human, ai) in session:
         prompt.append({'role': 'user', 'content': human})
         prompt.append({'role': 'assistant', 'content': ai})
