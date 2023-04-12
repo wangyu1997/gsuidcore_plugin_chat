@@ -28,6 +28,7 @@ at_sv = SV(
 
 chat_dict: dict = {}
 key = config.normal_chat_key
+tip_ = config.chat_tip
 
 
 @regular_sv.on_fullmatch('重置chat', block=True,)
@@ -94,11 +95,12 @@ async def regular_reply(bot: Bot, event: Event):
     else:
         chat_dict[uid]['session'].append((msg, result))
         data = result
-        if '作为一个' in data or '很抱歉' in data:
+        if tip_ and ('作为一个' in data or '很抱歉' in data):
             data += f"\n\n您也可以尝试使用[bing xx]指令从NewBing查询更多实时的信息哦。"
     chat_dict[uid]["isRunning"] = False
     sessions_number = chat_dict[uid]["sessions_number"]
-    data += f"\n\n当前会话: {sessions_number}  字数异常请发送\"重置chat\""
+    if tip_:
+        data += f"\n\n当前会话: {sessions_number}  字数异常请发送\"重置chat\""
     await bot.send(data, at_sender=True)
 
 

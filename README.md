@@ -54,9 +54,11 @@
 |bing_or_openai_proxy|str       |""         |bing_or_openai_proxy = "http://127.0.0.1:1081" |    openai或者newbing的代理, 配置详细请看下文|        
 |newbing_style    |str             |creative   |newbing_style = "creative"             |newbing的风格, "creative", "balanced", "precise", 三选一, 乱填报错我不管|
 | normal_chat_key   | string         |我     |normal_chat_key = "xskjd"                  |      免费chat的api                         |
-| flickr_api   | string         |我     |flickr_api = "xsds"                  |      flickr的api                         |
-| chat_proxy   | string         |我     |chat_api = "xsds"                  |      国内的http代理 
-| rapid_api_proxy   | string         |我     |rapid_api_proxy = "xsds"                  |      rapid api key
+| flickr_api   | string         |""     |flickr_api = "xsds"                  |      flickr的api                         |
+| chat_proxy   | string         |""     |chat_api = "xsds"                  |      国内的http代理 
+| rapid_api_proxy   | string         |""     |rapid_api_proxy = "xsds"                  |      rapid api key
+| bot_personality   | bool         |false     |bot_personality = true                  |      是否打开预设人格
+| chat_tip   | bool         |true     |chat_tip  = true                  |      是否打开normal chat的提示
 
 > config.json完全不配置不影响插件运行, 但是部分功能会无法使用(openai, newbing)
 
@@ -76,6 +78,8 @@
     注意：如果服务器在国外，并且使用了pandapy的服务，需要自己搭建国内http代理，并且配置chat_proxy
 
     如果想使用人格预设功能，请先配置好`personality.json`，然后设置config中的bot_personality为true即可
+
+    通过控制config中的bot_tip 开/关回复底部提示
 
     api key的获取方式：https://www.pandapy.com/
 
