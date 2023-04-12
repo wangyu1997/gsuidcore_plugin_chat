@@ -28,6 +28,7 @@ class Config(BaseSettings):
     normal_chat_key: str = ""
     flickr_api: str = ""
     chat_proxy: str = ""
+    rapid_api_key: str = ""
 
 
 config_json = json.loads(open(config_path, 'r').read())

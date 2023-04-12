@@ -23,7 +23,7 @@
     接入了new bing的接口, 详情见下文
     接入了openai的接口, 详情见下文
     加入了网页截图功能, 详情见下文
-    加入了Flickr以文搜图的功能, 详情见下文
+    加入了Flickr和Web Image Search的以文搜图的功能, 详情见下文
     新增了发病指令
 
 
@@ -32,8 +32,11 @@
 
     cd gsuid_core/gsuid_core/plugins
     git clone https://github.com/wangyu1997/gsuidcore_plugin_chat.git
-    cd gsuidcore_plugin_chat.git
+    cd gsuidcore_plugin_chat
     poetry run pip install -r requirements.txt
+    cd gsuidcore_plugin_chat/data
+    cp config_template.json config.json
+    
     修改`gsuidcore_plugin_chat/data/`下的`config.json`和`cookies`文件夹
 
 
@@ -52,7 +55,8 @@
 |newbing_style    |str             |creative   |newbing_style = "creative"             |newbing的风格, "creative", "balanced", "precise", 三选一, 乱填报错我不管|
 | normal_chat_key   | string         |我     |normal_chat_key = "xskjd"                  |      免费chat的api                         |
 | flickr_api   | string         |我     |flickr_api = "xsds"                  |      flickr的api                         |
-
+| chat_proxy   | string         |我     |chat_api = "xsds"                  |      国内的http代理 
+| rapid_api_proxy   | string         |我     |rapid_api_proxy = "xsds"                  |      rapid api key
 
 > config.json完全不配置不影响插件运行, 但是部分功能会无法使用(openai, newbing)
 
@@ -68,6 +72,8 @@
 
     基于公共api获取回复，如果不配置openai和bing，不影响本功能使用。
     简单对话自动调用默认配置回复（下同）。
+
+    注意：如果服务器在国外，并且使用了pandapy的服务，需要自己搭建国内http代理，并且配置chat_proxy
 
     api key的获取方式：https://www.pandapy.com/
 
@@ -92,7 +98,16 @@
     用法：
         1. 发几张xxx的图片
         2. 来几张xxx的图片
-​       
+    
+    基于Web Image Search的关键词搜索，每天固定100次免费搜索。
+
+    注意，Web Image Search对英文query支持好，为了更好的搜索，首先使用chatgpt默认的国内对齐英文实体，再进行查询。如果要使用本功能，请先配置chat功能。
+
+    api key的获取方式: https://rapidapi.com/contextualwebsearch/api/web-search
+​    
+    用法：
+        1. 搜索xxx
+
 ## 关于openai:
 
     1. openai_api_key请注册openai后在 https://beta.openai.com/account/api-keys 自己获取

@@ -2,10 +2,9 @@ import re
 import json
 import random
 import httpx
-import asyncio
-import requests
-from functools import partial
+import base64
 
+from gsuid_core.logger import logger
 from .config import config, keyword_path, anime_thesaurus
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
@@ -69,29 +68,14 @@ async def rand_poke() -> str:
     return random.choice(poke__reply)
 
 
-async def normal_chat(text, session):
-    if not session:
-        session = []
-
-    key = config.normal_chat_key
-
-    prompt = [{'role': 'system', 'content': '你的名字叫Paimon，是来自提瓦特大陆的小助手，和你对话的是旅行者。'}]
-    for (human, ai) in session:
-        prompt.append({'role': 'user', 'content': human})
-        prompt.append({'role': 'assistant', 'content': ai})
-
-    prompt.append({'role': 'user', 'content': text})
+async def request_chat(prompt, client):
     data = {
         "messages": prompt,
         "tokensLength": 0,
         "model": "gpt-3.5-turbo"
     }
 
-    proxies = {}
-    if config.chat_proxy:
-        proxies = {
-            'all://': f"http://{config.chat_proxy}"
-        }
+    key = config.normal_chat_key
 
     url = f"https://api.aigcfun.com/api/v1/text?key={key}"
 
@@ -100,26 +84,54 @@ async def normal_chat(text, session):
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
     }
 
+    res = await client.post(url, data=json.dumps(data), headers=headers)
+    res = res.json()
+    return res["choices"][0]["text"].strip()
+
+
+async def request_img(img_url, client):
+    response = await client.get(img_url)
+    if response.status_code == 200:
+        img_base64 = base64.b64encode(response.content)
+        img_bytes = base64.b64decode(img_base64)
+        return img_bytes
+    return None
+
+
+async def normal_chat(text, session):
+    if not session:
+        session = []
+
+    prompt = [{'role': 'system', 'content': '你的名字叫Paimon，是来自提瓦特大陆的小助手，和你对话的是旅行者。'}]
+    for (human, ai) in session:
+        prompt.append({'role': 'user', 'content': human})
+        prompt.append({'role': 'assistant', 'content': ai})
+
+    prompt.append({'role': 'user', 'content': text})
+
+    proxies = {}
+    if config.chat_proxy:
+        proxies = {
+            'all://': f"http://{config.chat_proxy}"
+        }
+
     async with httpx.AsyncClient(verify=False, timeout=None, proxies=proxies) as client:
-        res = await client.post(url, data=json.dumps(data), headers=headers)
-        res = res.json()
-        return res["choices"][0]["text"].strip()
+        response = await request_chat(prompt, client)
+        return response
 
 
 async def get_chat_result(text: str, session: None) -> str:
     """从字典中返回结果"""
-    if True:
+    try:
         data = await normal_chat(text, session)
-    # except Exception as e:
-    #     from gsuid_core.logger import logger
-    #     logger.info(f'DEBUG DEBUG {str(e)}')
-    #     data = "请求失败，可能当前session对话达到上限，请使用[重置chat]重置会话，或尝试使用bing xx或openai xx来询问bing或者openai吧"
+    except Exception as e:
+        logger.info(f'{type(e)} chat error: {e}')
+        data = "请求失败，可能当前session对话达到上限，请使用[重置chat]重置会话，或尝试使用bing xx或openai xx来询问bing或者openai吧"
 
     return data
 
+
 # 简单去除wx at有可能误杀
-
-
 async def remove_at(msg: str):
     if ' ' not in msg and '@' in msg:
         msg = ''
