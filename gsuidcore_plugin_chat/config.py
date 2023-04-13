@@ -12,6 +12,7 @@ keyword_path: Path = data_path / "resource/json/data.json"
 anime_thesaurus: dict = json.load(open(keyword_path, "r", encoding="utf-8"))
 audio_path: Path = data_path / "resource/audio"
 audio_list: list = os.listdir(audio_path)
+group_switch: bool = False
 
 
 class Config(BaseSettings):
@@ -32,6 +33,7 @@ class Config(BaseSettings):
     chat_proxy: str = ""
     rapid_api_key: str = ""
     chat_tip: bool = True
+    group_switch: bool = False
 
 
 config_json = json.loads(open(config_path, 'r').read())

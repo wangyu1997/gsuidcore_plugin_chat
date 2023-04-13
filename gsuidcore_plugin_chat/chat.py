@@ -6,6 +6,7 @@ from gsuid_core.bot import Bot
 from gsuid_core.sv import SV
 from gsuid_core.models import Event
 from .utils import *
+from .config import config
 
 regular_sv = SV(
     '普通聊天',
@@ -26,9 +27,26 @@ at_sv = SV(
     area='ALL'
 )
 
+group_private_config = SV('群聊/私聊管理', pm=1,
+                          priority=11,
+                          enabled=True,
+                          black_list=[],
+                          area='ALL')
+
+
 chat_dict: dict = {}
 key = config.normal_chat_key
 tip_ = config.chat_tip
+
+
+@group_private_config.on_fullmatch('切换模式', block=True)
+async def reserve_chat(bot: Bot, event: Event):
+    group_switch = not config.group_switch
+    if group_switch:
+        await bot.send("已切换到群聊模式", at_sender=True)
+    else:
+        await bot.send("已切换到私人模式", at_sender=True)
+    config.group_switch = group_switch
 
 
 @regular_sv.on_fullmatch('重置chat', block=True,)
@@ -76,6 +94,10 @@ async def regular_reply(bot: Bot, event: Event):
         return
 
     uid = event.user_id
+
+    if event.user_type == 'group' and config.group_switch:
+        uid = event.group_id
+
     msg = event.text
 
     if uid not in chat_dict:
@@ -106,6 +128,11 @@ async def regular_reply(bot: Bot, event: Event):
 
 def new_chat(_: Bot, event: Event) -> None:
     current_time = int(time.time())
+
     user_id: str = str(event.user_id)
+
+    if event.user_type == 'group' and config.group_switch:
+        user_id = event.group_id
+
     chat_dict[user_id] = {"session": [], "last_time": current_time,
                           "sessions_number": 0, "isRunning": False}

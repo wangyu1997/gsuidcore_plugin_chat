@@ -26,6 +26,8 @@
     加入了Flickr和Web Image Search的以文搜图的功能, 详情见下文
     新增了发病指令
 
+    chat均可以通过 [切换模式] 切换群聊还是私人模式（群聊为一个group共同维护一个session）
+
 
 ### 安装方式:
 
@@ -80,6 +82,7 @@
     如果想使用人格预设功能，请先配置好`personality.json`，然后设置config中的bot_personality为true即可
 
     通过控制config中的bot_tip 开/关回复底部提示
+
 
     api key的获取方式：https://www.pandapy.com/
 

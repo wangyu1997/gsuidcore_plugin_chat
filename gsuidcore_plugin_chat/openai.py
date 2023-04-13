@@ -46,6 +46,10 @@ async def openai_handle(bot: Bot, event: Event):
         return
 
     uid = event.user_id
+
+    if event.user_type == 'group' and config.group_switch:
+        uid = event.group_id
+
     msg = event.text.strip()
 
     if not apikey_allow:
@@ -94,11 +98,16 @@ async def openai_handle(bot: Bot, event: Event):
 
 async def openai_new_chat(bot: Bot, event: Event) -> None:
     current_time = int(time.time())
+
     user_id: str = str(event.user_id)
+
+    if event.user_type == 'group' and config.group_switch:
+        user_id = event.group_id
+
     if user_id in openai_chat_dict:
         last_time = openai_chat_dict[user_id]["last_time"]
         if (current_time - last_time < config.openai_cd_time) and (
-            event.user_id not in config.superusers
+            user_id not in config.superusers
         ):
             await bot.send(
                 f"非报错情况下每个会话需要{config.openai_cd_time}秒才能新建哦, 当前还需要{config.openai_cd_time - (current_time - last_time)}秒", at_sender=True

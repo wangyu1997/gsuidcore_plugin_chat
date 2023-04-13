@@ -69,6 +69,9 @@ async def reserve_bing(bot: Bot, event: Event) -> None:
 async def pretreatment(bot: Bot, event: Event):
     uid = event.user_id
 
+    if event.user_type == 'group' and config.group_switch:
+        uid = event.group_id
+
     if not cookie_allow:
         await bot.send("cookie未设置, 无法访问", at_sender=True)
         return
@@ -86,7 +89,12 @@ async def pretreatment(bot: Bot, event: Event):
 
 @bing.on_prefix('bing', block=True,)
 async def bing_handle(bot: Bot, event: Event):
+
     uid = event.user_id
+
+    if event.user_type == 'group' and config.group_switch:
+        uid = event.group_id
+
     msg = event.text.strip()
 
     if not reply_private and event.user_type == 'direct':
@@ -163,11 +171,16 @@ async def bing_handle(bot: Bot, event: Event):
 
 async def newbing_new_chat(bot: Bot, event: Event, style=config.newbing_style) -> None:
     current_time: int = int(time.time())
+
     user_id: str = str(event.user_id)
+
+    if event.user_type == 'group' and config.group_switch:
+        user_id = event.group_id
+
     if user_id in bing_chat_dict:
         last_time: int = bing_chat_dict[user_id]["last_time"]
         if (current_time - last_time < config.newbing_cd_time) and (
-            event.user_id not in config.superusers
+            user_id not in config.superusers
         ):  # 如果当前时间减去上一次时间小于CD时间, 直接返回
             await bot.send(
                 f"非报错情况下每个会话需要{config.newbing_cd_time}秒才能新建哦, 当前还需要{config.newbing_cd_time - (current_time - last_time)}秒", at_sender=True
