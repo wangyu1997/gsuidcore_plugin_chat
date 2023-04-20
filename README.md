@@ -164,3 +164,10 @@ other:
     api key的获取方式: https://rapidapi.com/contextualwebsearch/api/web-search
 
     3. align_prompt可以自己修改prompt, 用<QUERY>占位即可
+
+
+
+## 感谢两位佬的源码参考:
+
+> - [nonebot_plugin_smart_reply](https://github.com/Special-Week/nonebot_plugin_smart_reply)
+> - [nonebot_plugin_gsmaterial](https://github.com/monsterxcn/nonebot-plugin-gsmaterial)
