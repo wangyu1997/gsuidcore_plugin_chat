@@ -33,10 +33,6 @@
 
 配置文件位于gscore根目录的`data`文件夹下的config.yaml (初次运行后会自动创建)：
 
-```
-OPENAI_API_KEY = key
-```
-
 配置说明如下：
 
 ```
