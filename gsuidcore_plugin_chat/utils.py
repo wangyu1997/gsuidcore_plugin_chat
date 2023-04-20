@@ -1,16 +1,15 @@
+import inspect
 import re
-import json
+import asyncio
 import random
-import httpx
 import base64
-
+from httpx import AsyncClient
 from gsuid_core.logger import logger
-from .config import config, keyword_path, anime_thesaurus
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 
-reply_private: bool = config.ai_reply_private
-bot_nickname: str = config.bot_nickname
+
+bot_nickname: str = 'Paimon'
 poke__reply: tuple = (
     "lsp你再戳？",
     "连个可爱美少女都要戳的肥宅真恶心啊。",
@@ -38,7 +37,7 @@ hello_reply: tuple = (
     "你好！",
     "哦豁？！",
     "你好！Ov<",
-    f"库库库，呼唤{config.bot_nickname}做什么呢",
+    f"库库库，呼唤{bot_nickname}做什么呢",
     "我在呢！",
     "呼呼，叫俺干嘛",
 )
@@ -68,27 +67,6 @@ async def rand_poke() -> str:
     return random.choice(poke__reply)
 
 
-async def request_chat(prompt, client):
-    data = {
-        "messages": prompt,
-        "tokensLength": 0,
-        "model": "gpt-3.5-turbo"
-    }
-
-    key = config.normal_chat_key
-
-    url = f"https://api.aigcfun.com/api/v1/text?key={key}"
-
-    headers = {
-        'Content-Type': "application/json",
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
-    }
-
-    res = await client.post(url, data=json.dumps(data), headers=headers)
-    res = res.json()
-    return res["choices"][0]["text"].strip()
-
-
 async def request_img(img_url, client):
     response = await client.get(img_url)
     if response.status_code == 200:
@@ -97,117 +75,12 @@ async def request_img(img_url, client):
         return img_bytes
     return None
 
-
-async def normal_chat(text, session):
-    if not session:
-        session = []
-
-    prompt = []
-    if config.bot_personality:
-        per_data = json.loads(open(config.personality_path, 'r').read())
-        prompt.append(
-            {'role': 'system', 'content': f'{per_data["system_prompt"].replace("_bot_name_", config.bot_nickname)}'})
-        for item in per_data['personality']:
-            prompt.append(
-                {'role': 'user', 'content': f'{item["user"].replace("_bot_name_", config.bot_nickname)}'})
-            prompt.append(
-                {'role': 'assistant', 'content': f'{item["ai"].replace("_bot_name_", config.bot_nickname)}'})
-
-    for (human, ai) in session:
-        prompt.append({'role': 'user', 'content': human})
-        prompt.append({'role': 'assistant', 'content': ai})
-
-    prompt.append({'role': 'user', 'content': text})
-
-    proxies = {}
-    if config.chat_proxy:
-        proxies = {
-            'all://': f"http://{config.chat_proxy}"
-        }
-
-    async with httpx.AsyncClient(verify=False, timeout=None, proxies=proxies) as client:
-        response = await request_chat(prompt, client)
-        return response
-
-
-async def get_chat_result(text: str, session: None) -> str:
-    """从字典中返回结果"""
-    try:
-        data = await normal_chat(text, session)
-    except Exception as e:
-        logger.info(f'{type(e)} chat error: {e}')
-        data = "请求失败，可能当前session对话达到上限，请使用[重置chat]重置会话，或尝试使用bing xx或openai xx来询问bing或者openai吧"
-
-    return data
-
-
 # 简单去除wx at有可能误杀
 async def remove_at(msg: str):
     if ' ' not in msg and '@' in msg:
         msg = ''
     msg = re.sub(r"@.*? ", "", msg)
     return msg
-
-
-async def add_word(word1: str, word2: str) -> str:
-    """添加词条"""
-    lis = []
-    for key in anime_thesaurus:
-        if key == word1:
-            lis = anime_thesaurus[key]
-            for word in lis:
-                if word == word2:
-                    return "寄"
-    if lis == []:
-        axis = {word1: [word2]}
-    else:
-        lis.append(word2)
-        axis = {word1: lis}
-    anime_thesaurus.update(axis)
-    with open(keyword_path, "w", encoding="utf-8") as f:
-        json.dump(anime_thesaurus, f, ensure_ascii=False, indent=4)
-
-
-async def check_word(target: str) -> str:
-    """查询关键词下词条"""
-    for item in anime_thesaurus:
-        if target == item:
-            mes = f"下面是关键词 {target} 的全部响应\n\n"
-            # 获取关键词
-            lis = anime_thesaurus[item]
-            n = 0
-            for word in lis:
-                n = n + 1
-                mes = mes + str(n) + "、" + word + "\n"
-            return mes
-    return "寄"
-
-
-async def check_all() -> str:
-    """查询全部关键词"""
-    mes = "下面是全部关键词\n\n"
-    for c in anime_thesaurus:
-        mes = mes + c + "\n"
-    return mes
-
-
-async def del_word(word1: str, word2: int):
-    """删除关键词下具体回答"""
-    axis = {}
-    for key in anime_thesaurus:
-        if key == word1:
-            lis: list = anime_thesaurus[key]
-            word2 = int(word2) - 1
-            try:
-                lis.pop(word2)
-                axis = {word1: lis}
-            except Exception:
-                return "寄"
-    if axis == {}:
-        return "寄"
-    anime_thesaurus.update(axis)
-    with open(keyword_path, "w", encoding="utf8") as f:
-        json.dump(anime_thesaurus, f, ensure_ascii=False, indent=4)
 
 
 async def line_break(line: str) -> str:
@@ -255,3 +128,93 @@ async def txt_to_img(text: str, font_size=30, font_path="hywh.ttf") -> bytes:
     img_byte = BytesIO()
     new_img.save(img_byte, format="PNG")
     return img_byte.getvalue()
+
+
+class Registry:
+    def __init__(self, name=None, build_fn=None):
+        self._name = name
+        self._module_dict = dict()
+
+        if build_fn is not None:
+            self.build_fn = build_fn
+        else:
+            self.build_fn = build_from_cfg
+
+    def __len__(self):
+        return len(self._module_dict)
+
+    def __contains__(self, key):
+        return key in self._module_dict
+
+    def __repr__(self):
+        format_str = f'{self.__class__.__name__}(name={self._name}, ' \
+                     f'items={self._module_dict})'
+        return format_str
+
+    def get(self, key: str):
+        assert key in self._module_dict, f'{key} not find'
+        return self._module_dict.get(key)
+
+    def build(self, *args, **kwargs):
+        return self.build_fn(*args, **kwargs, registry=self)
+
+    def _register_module(self, module_cls, name=None):
+        if not inspect.isclass(module_cls):
+            raise TypeError(f'module must be a class, but got {type(module_cls)}')
+
+        if name is None:
+            name = module_cls.__name__
+
+        if name in self._module_dict:
+            raise KeyError(f'{name} is already registered in {self.name}')
+
+        self._module_dict[name] = module_cls
+
+    def register_module(self, name=None):
+        def _register_module(cls):
+            self._register_module(module_cls=cls, name=name)
+            return cls
+
+        return _register_module
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def module_dict(self):
+        return self._module_dict
+
+
+def build_from_cfg(config, registry):
+    if not config.name:
+        raise RuntimeError(f'the name of the cfg for {registry.name} is needed!')
+
+    if not isinstance(config.name, str):
+        raise RuntimeError(f'the name of the cfg for {registry.name} should be str !')
+
+    cls = registry.get(config.name)
+    try:
+        return cls(config)
+    except Exception as e:
+        raise type(e)(f'{cls.__name__}: {e}')
+
+
+
+async def download_file(file_path, url):
+    # 远程文件下载
+    retry = 3
+    async with AsyncClient(verify=False) as client:
+        while retry:
+            try:
+                async with client.stream("GET", url) as res:
+                    with open(file_path, "wb") as fb:
+                        async for chunk in res.aiter_bytes():
+                            fb.write(chunk)
+                return file_path
+            except Exception as e:
+                retry -= 1
+                if retry:
+                    await asyncio.sleep(2)
+                else:
+                    logger.error(f"文件 {file_path} 下载失败！{e}")
