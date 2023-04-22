@@ -15,7 +15,6 @@ other_sv = SV(
 )
 
 
-print(config.other.browser)
 browser = OTHER.build(config.other.browser)
 setereo = OTHER.build(config.other.setereo)
 

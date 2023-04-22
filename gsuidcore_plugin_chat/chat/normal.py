@@ -15,8 +15,18 @@ from gsuid_core.logger import logger
 @CHAT.register_module()
 class NormalChat(BaseChat):
   def __init__(self, config=None):
-    super(NormalChat, self).__init__(config)
-    
+    super(NormalChat, self).__init__(config) 
+    self.prompt = [] 
+    self.api_url = self.config.api_url
+    self.keys = self.config.api_keys
+    self.model = self.config.model
+    self.proxy = self.config.proxy
+    self.token_length = self.config.token_length
+    self.nickname = self.config.nickname
+    self.headers = {
+    'Content-Type': "application/json",
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
+    }  
     
   async def _create(self, user_id):
     current_time = int(time.time())
@@ -56,17 +66,6 @@ class NormalChat(BaseChat):
         logger.info(f'normalchat 正在下载人设文件...')
         await download_file(self.person_file, self.download_url)
 
-    self.api_url = self.config.api_url
-    self.keys = self.config.api_keys
-    self.model = self.config.model
-    self.proxy = self.config.proxy
-    self.token_length = self.config.token_length
-    self.headers = {
-    'Content-Type': "application/json",
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
-    }
-    self.nickname = self.config.nickname
-    self.prompt = []
     if os.path.exists(self.person_file) and str(self.person_file).endswith('.json'):
         logger.info(f'NormalChat 尝试加载人格文件: {self.person_file}')
         try:

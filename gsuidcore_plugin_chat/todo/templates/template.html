@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" , content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <link rel="stylesheet" href="./css/style.css">
+  <title>Todo_List</title>
+</head>
+
+<body>
+  <main>
+    <div class="task_wrap">
+      <p class="task_tit">任务清单</p>
+      <ul class="task_con">
+        {% for date, notice_list in list_by_date %}
+        <li class="task_con_li">
+          <p class="date">{{date}} </p>
+          <ul>
+            {% for time, ddl, name, percentage in notice_list %}
+            <li>
+              {{name}} [{{time}}] (距ddl还有：{{ddl}})
+              <div class="process">
+                <span style="width:{{percentage}}%"></span>
+              </div>
+            </li>
+            {%endfor%}
+          </ul>
+        </li>
+        {%endfor%}
+      </ul>
+    </div>
+  </main>
+</body>

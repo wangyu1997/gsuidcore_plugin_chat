@@ -36,6 +36,7 @@ DL_CFG = {}
 
 RESAMPLING = getattr(Image, "Resampling", Image).LANCZOS
 
+
 async def _get_uid(user_id: str, bot_id: str):
     sqla = get_sqla(bot_id)
     uid = await sqla.get_bind_uid(user_id)
@@ -493,7 +494,7 @@ async def update_config(config):
         not x for x in [domain_res, avatar_res, weapon_res, update_res, material_res]
     ):
         logger.info("安柏计划数据不全！更新任务被跳过")
-        return
+        return DL_CFG, ITEM_ALIAS
 
     config = {"avatar": {}, "weapon": {},
               "weekly": {}, "skip_3": SKIP_THREE, "time": 0}

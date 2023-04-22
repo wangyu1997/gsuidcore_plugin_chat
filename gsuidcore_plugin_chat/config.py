@@ -119,6 +119,15 @@ meta_config.other.setereo.default = 'default.data'
 meta_config.other.setereo.data_url = 'https://raw.githubusercontent.com/wangyu1997/file_upload/main/stereo.data'
 meta_config.other.setereo.data = 'default.data'
 
+
+
+# -----------------------------------------------------------------------------
+#  todo setting
+# -----------------------------------------------------------------------------
+meta_config.other.todo = CfgNode()
+meta_config.other.todo.name = 'ToDoModel'
+meta_config.other.todo.push_time = 30
+
 def get_config():
     config = meta_config.clone()
     config_path = get_res_path('GsChat') / 'config.yaml'

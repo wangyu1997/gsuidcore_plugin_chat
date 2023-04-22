@@ -7,6 +7,10 @@ from httpx import AsyncClient
 from gsuid_core.logger import logger
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
+from contextlib import asynccontextmanager
+from contextlib import suppress
+from typing import Optional, Literal, Tuple, AsyncGenerator, AsyncIterator
+from playwright.async_api import Page, Browser, Playwright, async_playwright, Error
 
 
 bot_nickname: str = 'Paimon'
@@ -76,6 +80,8 @@ async def request_img(img_url, client):
     return None
 
 # 简单去除wx at有可能误杀
+
+
 async def remove_at(msg: str):
     if ' ' not in msg and '@' in msg:
         msg = ''
@@ -160,7 +166,8 @@ class Registry:
 
     def _register_module(self, module_cls, name=None):
         if not inspect.isclass(module_cls):
-            raise TypeError(f'module must be a class, but got {type(module_cls)}')
+            raise TypeError(
+                f'module must be a class, but got {type(module_cls)}')
 
         if name is None:
             name = module_cls.__name__
@@ -188,17 +195,18 @@ class Registry:
 
 def build_from_cfg(config, registry):
     if not config.name:
-        raise RuntimeError(f'the name of the cfg for {registry.name} is needed!')
+        raise RuntimeError(
+            f'the name of the cfg for {registry.name} is needed!')
 
     if not isinstance(config.name, str):
-        raise RuntimeError(f'the name of the cfg for {registry.name} should be str !')
+        raise RuntimeError(
+            f'the name of the cfg for {registry.name} should be str !')
 
     cls = registry.get(config.name)
     try:
         return cls(config)
     except Exception as e:
         raise type(e)(f'{cls.__name__}: {e}')
-
 
 
 async def download_file(file_path, url):
@@ -218,3 +226,49 @@ async def download_file(file_path, url):
                     await asyncio.sleep(2)
                 else:
                     logger.error(f"文件 {file_path} 下载失败！{e}")
+
+
+class BaseBrowser:
+    def __init__(self):
+        self._playwright: Optional[Playwright] = None
+        self._browser: Optional[Browser] = None
+
+    async def init_browser(self, **kwargs) -> Browser:
+        try:
+            self._playwright = await async_playwright().start()
+            self._browser = await self.launch_browser(**kwargs)
+        except NotImplementedError:
+            logger.warning('Playwright', '初始化失败，请关闭FASTAPI_RELOAD')
+        except Error:
+            await install_browser()
+            self._browser = await self.launch_browser(**kwargs)
+        return self._browser
+
+    async def launch_browser(self, **kwargs) -> Browser:
+        assert self._playwright is not None, "Playwright is not initialized"
+        return await self._playwright.chromium.launch(**kwargs)
+
+    async def get_browser(self, **kwargs) -> Browser:
+        return self._browser or await self.init_browser(**kwargs)
+
+    async def install_browser(self):
+        import os
+        import sys
+
+        from playwright.__main__ import main
+
+        logger.info('Playwright', '正在安装 chromium')
+        sys.argv = ["", "install", "chromium"]
+        with suppress(SystemExit):
+            logger.info('Playwright', '正在安装依赖')
+            os.system("playwright install-deps")
+            main()
+
+    @asynccontextmanager
+    async def get_new_page(self, **kwargs) -> AsyncGenerator[Page, None]:
+        assert self._browser, "playwright尚未初始化"
+        page = await self._browser.new_page(**kwargs)
+        try:
+            yield page
+        finally:
+            await page.close()
