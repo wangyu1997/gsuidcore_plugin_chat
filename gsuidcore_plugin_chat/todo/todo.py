@@ -190,7 +190,7 @@ class ToDoModel:
         if not status:
             await bot.send(f"不存在名为[{name}]的提醒。")
         else:
-            img = await self.get_list_img(user_id)
+            img = await self.get_list_img(user_id, bot_id)
             await bot.send(f"已删除[{name}]，剩余待办{number}项。")
             await bot.send(img)
 
@@ -267,10 +267,6 @@ class ToDoModel:
             list_by_date[date].append(
                 (time, ddl, notice.name, notice.percentage))
 
-        if not list_by_date:
-            return '您目前没有待办任务哦'
-
-        result = '任务清单\n'
         sorted_dates = sorted(list_by_date)
         render_list = []
         date_count = len(sorted_dates)
