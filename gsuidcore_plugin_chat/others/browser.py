@@ -22,6 +22,7 @@ class Browser:
                          viewport_size: Tuple[int, int] = (1920, 1080),
                          full_page=True,
                          **kwargs):
+        url = url.strip()
         if not url.startswith(('https://', 'http://')):
             url = f'https://{url}'
         viewport_size = {'width': viewport_size[0], 'height': viewport_size[1]}

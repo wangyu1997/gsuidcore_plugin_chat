@@ -5,6 +5,7 @@ from gsuid_core.models import Event
 from gsuid_core.logger import logger
 from typing import Dict, Union
 from .utils import *
+from .utils import _get_uid
 import asyncio
 import threading
 
