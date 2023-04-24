@@ -69,6 +69,9 @@ image:
 other:
   setereo:
     data: default.data # 用户自定义发病语录
+  song:
+    api: https://netease-cloud-music-api-git-master-wangyu1997.vercel.app
+    name: Song
   todo:
     push_time: 30 # 开始推送的最小时间（默认30分钟，如有任务在30分钟内ddl，则触发提醒）
 
@@ -101,6 +104,8 @@ other:
 - [提醒xxxx]  (增加提醒 如 提醒我明天上午九点吃饭)
 - [删除提醒xxx]  (删除提醒 如 删除提醒吃饭)
 
+- [点歌 xxx]  (从网易云获取第一首可以下载的歌曲)
+
 
 # 注意事项
 
@@ -113,10 +118,10 @@ other:
 
     1. 国内聊天
     
-    基于公共api获取回复，如果不配置openai和bing，不影响本功能使用。
-    简单对话自动调用默认配置回复（下同）。
+        基于公共api获取回复，如果不配置openai和bing，不影响本功能使用。
+        简单对话自动调用默认配置回复（下同）。
 
-    注意：如果服务器在国外，并且使用了pandapy的服务，需要自己搭建国内http代理，并且配置chat_proxy
+        注意：如果服务器在国外，并且使用了pandapy的服务，需要自己搭建国内http代理，并且配置chat_proxy
 
 
     2. bing
@@ -173,6 +178,12 @@ other:
     2.名字相同的提醒事项只能添加一次，会根据添加提醒的群组或私聊，推送到对应的地方
 
     3. 默认十分钟检查并推送一次
+
+## 关于点歌:
+
+    1. 推荐使用自己的Vercel部署网易云api 参考: https://github.com/Binaryify/NeteaseCloudMusicApi
+
+    2. 默认下载列表可以获取mp3的第一首歌曲，并发送歌曲信息和文件（由于wechat限制，没法发送语音）
 
 
 ## 感谢两位佬的源码参考:
