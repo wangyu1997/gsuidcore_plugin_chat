@@ -11,9 +11,8 @@ from gsuid_core.data_store import get_res_path
 from gsuid_core.segment import MessageSegment
 from gsuid_core.gss import gss
 from gsuid_core.logger import logger
-from .utils import get_time, template_to_pic
-from typing import Optional, Literal, Tuple
-from ..utils import BaseBrowser
+from .utils import get_time
+from ..utils import BaseBrowser, template_to_pic
 
 
 class NoticeItem:
@@ -27,8 +26,8 @@ class NoticeItem:
 
     @property
     def time_left(self):
-        today = datetime.today()
-        time_diff = (self.end_date - today)
+        today = datetime.now()
+        time_diff = self.end_date - today
         days = time_diff.days
         hours = int(time_diff.seconds // 3600)
         minutes = int((time_diff.seconds % 3600) // 60)
@@ -37,8 +36,8 @@ class NoticeItem:
     @property
     def percentage(self):
         today = datetime.today()
-        time_len = (self.end_date - self.start_date)
-        time_spent = (today - self.start_date)
+        time_len = self.end_date - self.start_date
+        time_spent = today - self.start_date
         return int(time_spent / time_len * 100)
 
     def time_parse(self, _time):
@@ -58,7 +57,7 @@ class NoticeItem:
         today = datetime.today()
         self.done = today >= self.end_date
         today = datetime.today()
-        time_diff = (self.end_date - today)
+        time_diff = self.end_date - today
         minutes = time_diff.seconds // 60
         if not self.done and minutes <= max_minutes:
             return True
@@ -72,9 +71,12 @@ class NoticeItem:
     def __eq__(self, other):
         if not isinstance(other, NoticeItem):
             raise ValueError("{other} is not a NoticeItem.")
-        if (self.name == other.name and self.group == other.group and
-                self.start_date == other.start_date and
-                self.end_date == other.end_date):
+        if (
+            self.name == other.name
+            and self.group == other.group
+            and self.start_date == other.start_date
+            and self.end_date == other.end_date
+        ):
             return True
         else:
             return False
@@ -84,19 +86,21 @@ class NoticeItem:
             'name': self.name,
             'start_time': datetime.strftime(self.start_date, self.format_str),
             'end_time': datetime.strftime(self.end_date, self.format_str),
-            'group': self.group
+            'group': self.group,
         }
 
     def __str__(self):
-        return f"name: {self.name}, start: {datetime.strftime(self.start_date, self.format_str)}" \
+        return (
+            f"name: {self.name}, start: {datetime.strftime(self.start_date, self.format_str)}"
             + f"end: {datetime.strftime(self.end_date, self.format_str)}, left: {self.time_left}"
+        )
 
 
 @TODO.register_module()
 class ToDoModel:
     def __init__(self, config=None):
         self.config = copy.deepcopy(config)
-        self.write_file: Path = get_res_path('GsChat')/'todo.json'
+        self.write_file: Path = get_res_path('GsChat') / 'todo.json'
         self.user_map = {}
         self.user2bot = {}
         self.chatgpt_fn = None
@@ -208,7 +212,11 @@ class ToDoModel:
                     bot = gss.active_bot[BOT_ID]
                     for user_id in self.user_map[bot_id]:
                         if self.user_map[bot_id][user_id]:
-                            user_type = 'group' if self.user_map[bot_id][user_id][0].group else 'direct'
+                            user_type = (
+                                'group'
+                                if self.user_map[bot_id][user_id][0].group
+                                else 'direct'
+                            )
                             send_flag = False
                             for notice in self.user_map[bot_id][user_id]:
                                 if notice.check_push(self.push_time):
@@ -224,8 +232,7 @@ class ToDoModel:
                 logger.exception(e)
 
     async def get_list(self, user_id, bot_id):
-        if bot_id not in self.user_map or \
-                user_id not in self.user_map[bot_id]:
+        if bot_id not in self.user_map or user_id not in self.user_map[bot_id]:
             if bot_id not in self.user_map:
                 self.user_map[bot_id] = {}
             self.user_map[bot_id][user_id] = []
@@ -264,8 +271,7 @@ class ToDoModel:
             ddl = f'{days}d{hours}h{minutes}m'
             if date not in list_by_date:
                 list_by_date[date] = []
-            list_by_date[date].append(
-                (time, ddl, notice.name, notice.percentage))
+            list_by_date[date].append((time, ddl, notice.name, notice.percentage))
 
         sorted_dates = sorted(list_by_date)
         render_list = []
@@ -279,24 +285,23 @@ class ToDoModel:
 
         try:
             content_width = 500
-            content_height = 76.4 + \
-                34 * date_count + \
-                64 * total_datas
+            content_height = 76.4 + 34 * date_count + 64 * total_datas
             # estimated title_height + date_height + list_token_height
             img_width = content_width / 0.618
             img_height = content_height / 0.618
             template_path = str(Path(__file__).parent / "templates")
-            img = await template_to_pic(template_path=template_path,
-                                        template_name="template.html",
-                                        templates={
-                                            "list_by_date": render_list,
-                                        },
-                                        browser=browser,
-                                        pages={
-                                            "viewport": {"width": int(img_width), "height": int(img_height)},
-                                            "base_url": f"file://{template_path}"
-                                        }
-                                        )
+            img = await template_to_pic(
+                template_path=template_path,
+                template_name="template.html",
+                templates={
+                    "list_by_date": render_list,
+                },
+                browser=browser,
+                pages={
+                    "viewport": {"width": int(img_width), "height": int(img_height)},
+                    "base_url": f"file://{template_path}",
+                },
+            )
             return img
         except Exception as e:
             logger.error(f'render notice error {str(e)}')

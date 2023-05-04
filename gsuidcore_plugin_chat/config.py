@@ -139,6 +139,12 @@ meta_config.other.todo = CfgNode()
 meta_config.other.todo.name = "ToDoModel"
 meta_config.other.todo.push_time = 30
 
+# -----------------------------------------------------------------------------
+#  billing setting
+# -----------------------------------------------------------------------------
+meta_config.other.billing = CfgNode()
+meta_config.other.billing.name = "BillingModel"
+
 
 def get_config():
     config = meta_config.clone()

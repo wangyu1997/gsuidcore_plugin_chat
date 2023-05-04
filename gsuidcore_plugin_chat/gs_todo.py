@@ -10,14 +10,7 @@ from .config import config
 from yacs.config import CfgNode
 from gsuid_core.aps import scheduler
 
-todo_sv = SV(
-    '提醒事项',
-    pm=6,
-    priority=9,
-    enabled=True,
-    black_list=[],
-    area='ALL'
-)
+todo_sv = SV('提醒事项', pm=6, priority=9, enabled=True, black_list=[], area='ALL')
 
 
 normal_cfg: CfgNode = copy.deepcopy(config.chat.Normal)
@@ -29,23 +22,36 @@ chatbot: NormalChat = CHAT.build(config.chat.Normal)
 todo_model: ToDoModel = TODO.build(config.other.todo)
 todo_model.set_chatgpt(chatbot.normal_chat)
 
-@todo_sv.on_prefix(('提醒', '提醒我'), block=True,)
+
+@todo_sv.on_prefix(
+    ('提醒', '提醒我'),
+    block=True,
+)
 async def add_notice(bot: Bot, event: Event):
     await todo_model.add_todo(bot, event)
 
 
-@todo_sv.on_prefix(('删除提醒', '完成提醒'), block=True,)
+@todo_sv.on_prefix(
+    ('删除提醒', '完成提醒'),
+    block=True,
+)
 async def finish_notice(bot: Bot, event: Event):
     await todo_model.remove_todo(bot, event)
 
 
-@todo_sv.on_fullmatch(('查看提醒'), block=True,)
+@todo_sv.on_fullmatch(
+    ('查看提醒'),
+    block=True,
+)
 async def change_notice(bot: Bot, event: Event):
     todo_model.check_all()
     await todo_model.send_pic(bot, event)
 
 
-@todo_sv.on_fullmatch(('推送测试'), block=True,)
+@todo_sv.on_fullmatch(
+    ('推送测试'),
+    block=True,
+)
 async def change_notice(bot: Bot, event: Event):
     todo_model.check_all()
     await todo_model.send_todo()

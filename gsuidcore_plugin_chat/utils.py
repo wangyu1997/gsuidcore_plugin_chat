@@ -11,7 +11,9 @@ from contextlib import asynccontextmanager
 from contextlib import suppress
 from typing import Optional, Literal, Tuple, AsyncGenerator, AsyncIterator
 from playwright.async_api import Page, Browser, Playwright, async_playwright, Error
-
+from os import getcwd
+from typing import Literal, Union
+import jinja2
 
 bot_nickname: str = 'Paimon'
 poke__reply: tuple = (
@@ -79,6 +81,7 @@ async def request_img(img_url, client):
         return img_bytes
     return None
 
+
 # 简单去除wx at有可能误杀
 
 
@@ -120,16 +123,14 @@ async def line_break(line: str) -> str:
 async def txt_to_img(text: str, font_size=30, font_path="hywh.ttf") -> bytes:
     """将文本转换为图片"""
     text = await line_break(text)
+    text = '\n'.join([text] * 10)
     d_font = ImageFont.truetype(font_path, font_size)
-    lines = text.count("\n")
+    lines = len(text.split('\n'))
     image = Image.new(
-        "L", (LINE_CHAR_COUNT * font_size // 2 +
-              50, font_size * lines + 50), "white"
+        "L", (LINE_CHAR_COUNT * font_size // 2 + 50, font_size * lines + 300), "white"
     )
     draw_table = ImageDraw.Draw(im=image)
-    draw_table.text(
-        xy=(25, 25), text=text, fill="#000000", font=d_font, spacing=4
-    )
+    draw_table.text(xy=(25, 25), text=text, fill="#000000", font=d_font, spacing=4)
     new_img = image.convert("RGB")
     img_byte = BytesIO()
     new_img.save(img_byte, format="PNG")
@@ -153,8 +154,10 @@ class Registry:
         return key in self._module_dict
 
     def __repr__(self):
-        format_str = f'{self.__class__.__name__}(name={self._name}, ' \
-                     f'items={self._module_dict})'
+        format_str = (
+            f'{self.__class__.__name__}(name={self._name}, '
+            f'items={self._module_dict})'
+        )
         return format_str
 
     def get(self, key: str):
@@ -166,8 +169,7 @@ class Registry:
 
     def _register_module(self, module_cls, name=None):
         if not inspect.isclass(module_cls):
-            raise TypeError(
-                f'module must be a class, but got {type(module_cls)}')
+            raise TypeError(f'module must be a class, but got {type(module_cls)}')
 
         if name is None:
             name = module_cls.__name__
@@ -195,12 +197,10 @@ class Registry:
 
 def build_from_cfg(config, registry):
     if not config.name:
-        raise RuntimeError(
-            f'the name of the cfg for {registry.name} is needed!')
+        raise RuntimeError(f'the name of the cfg for {registry.name} is needed!')
 
     if not isinstance(config.name, str):
-        raise RuntimeError(
-            f'the name of the cfg for {registry.name} should be str !')
+        raise RuntimeError(f'the name of the cfg for {registry.name} should be str !')
 
     cls = registry.get(config.name)
     try:
@@ -272,3 +272,85 @@ class BaseBrowser:
             yield page
         finally:
             await page.close()
+
+
+async def html_to_pic(
+    html: str,
+    wait: int = 0,
+    template_path: str = f"file://{getcwd()}",
+    type: Literal["jpeg", "png"] = "png",
+    quality: Union[int, None] = None,
+    browser=None,
+    **kwargs,
+) -> bytes:
+    """html转图片
+
+    Args:
+        html (str): html文本
+        wait (int, optional): 等待时间. Defaults to 0.
+        template_path (str, optional): 模板路径 如 "file:///path/to/template/"
+        type (Literal["jpeg", "png"]): 图片类型, 默认 png
+        quality (int, optional): 图片质量 0-100 当为`png`时无效
+        **kwargs: 传入 page 的参数
+
+    Returns:
+        bytes: 图片, 可直接发送
+    """
+    if "file:" not in template_path:
+        raise Exception("template_path 应该为 file:///path/to/template")
+    async with await browser.new_page(**kwargs) as page:
+        await page.goto(template_path)
+        await page.set_content(html, wait_until="networkidle")
+        await page.wait_for_timeout(wait)
+        img_raw = await page.screenshot(
+            full_page=True,
+            type=type,
+            quality=quality,
+        )
+    return img_raw
+
+
+async def template_to_pic(
+    template_path: str,
+    template_name: str,
+    templates: dict,
+    pages: dict = {
+        "viewport": {"width": 500, "height": 10},
+        "base_url": f"file://{getcwd()}",
+    },
+    wait: int = 0,
+    type: Literal["jpeg", "png"] = "png",
+    quality: Union[int, None] = None,
+    browser=None,
+) -> bytes:
+    """使用jinja2模板引擎通过html生成图片
+
+    Args:
+        template_path (str): 模板路径
+        template_name (str): 模板名
+        templates (dict): 模板内参数 如: {"name": "abc"}
+        pages (dict): 网页参数 Defaults to
+            {"base_url": f"file://{getcwd()}", "viewport": {"width": 500, "height": 10}}
+        wait (int, optional): 网页载入等待时间. Defaults to 0.
+        type (Literal["jpeg", "png"]): 图片类型, 默认 png
+        quality (int, optional): 图片质量 0-100 当为`png`时无效
+
+    Returns:
+        bytes: 图片 可直接发送
+    """
+
+    template_env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(template_path),
+        enable_async=True,
+    )
+    template = template_env.get_template(template_name)
+
+    return await html_to_pic(
+        template_path=f"file://{template_path}",
+        html=await template.render_async(**templates),
+        wait=wait,
+        type=type,
+        quality=quality,
+        browser=browser,
+        **pages,
+    )
