@@ -23,8 +23,8 @@
 * 手动安装
   ```
     cd gsuid_core/gsuid_core/plugins
-    git clone https://github.com/wangyu1997/gsuidcore_plugin_chat.git
-    cd gsuidcore_plugin_chat
+    git clone git@github.com:wangyu1997/GsChat.git
+    cd GsChat
     poetry run pip install -r requirements.txt
   ```
 
