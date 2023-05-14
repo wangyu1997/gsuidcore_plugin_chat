@@ -94,7 +94,7 @@ other:
 - [切换搜图 filckr|websearch]  (切换搜图引擎)
 - [查看搜图]  (查看当前的搜图引擎)
 
-- [截图|网页截图 url]  (获取url截图)
+- <del>[截图|网页截图 url]  (获取url截图 已废弃)</del>
 - [发病 xxx]  (返回发病语录)
 
 - [材料 [周一|今天|空]]  (获取材料)
@@ -118,16 +118,12 @@ other:
 - [清算]  (账单模块 通过创建的账单开始结算每个人应该给其他人转账多少)
 - [今日账单]  (账单模块 查看今日账单)
 
+- [url] (URL模块 直接发送url bot会自动解析)
 
 
 
 
 # 注意事项
-
-## 关于获取网页截图:
-
-    如果playwright出现报错的话，请自行升级内核或者更换playwright版本
-
 
 ## 关于聊天:
 
@@ -217,8 +213,31 @@ other:
 
     4. `查看账单`确定当前账单无误之后，使用`清算`命令即可对每个人自动计算应该给哪些人转账多少钱（没有做复杂的转账数量最小化）
 
+## 关于URL模块:
+    1. 目前实现了两个功能 网址截图和bilibili视频解析 直接发送url即可
 
-## 感谢两位佬的源码参考:
+    2. 网址截图: 如果playwright出现报错的话，请自行升级内核或者更换playwright版本
+    
+    3. bilibili视频解析 (初步测试 不保证完全适配)
+
+    返回格式如下：
+
+    视频图片
+
+    标题：情侣吵架一定要及时沟通 而不是在心里减分
+
+    类型：日常 | UP：床头吵架床尾和ok | 日期：2021-08-13 13:33:33
+
+    播放：5.84万 | 弹幕：75 | 收藏：352
+    点赞：562 | 硬币：54 | 评论：144
+
+    简介：视频搬运自互联网
+
+    https://www.bilibili.com/video/av462355640
+
+
+## 感谢下面几位佬的源码参考:
 
 > - [nonebot_plugin_smart_reply](https://github.com/Special-Week/nonebot_plugin_smart_reply)
 > - [nonebot_plugin_gsmaterial](https://github.com/monsterxcn/nonebot-plugin-gsmaterial)
+> - [nonebot_plugin_analysis_bilibili](https://github.com/mengshouer/nonebot_plugin_analysis_bilibili)

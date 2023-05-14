@@ -34,7 +34,7 @@ class Setereo:
                 logger.info(f'setereo 正在下载配置文件...')
                 await download_file(self.data_file, self.download_url)
 
-        self.datas = open(self.data_file, 'r').readlines()
+        self.datas = open(self.data_file, 'r', encoding='utf-8').readlines()
 
     async def get_setereo(self, name: str):
         msg = random.choice(self.datas).format(target_name=name)

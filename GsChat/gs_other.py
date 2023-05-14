@@ -5,7 +5,6 @@ from gsuid_core.sv import SV
 from gsuid_core.logger import logger
 from gsuid_core.models import Event
 from gsuid_core.segment import MessageSegment
-from .utils import request_img
 from .config import config
 
 
@@ -17,12 +16,16 @@ setereo = OTHER.build(config.other.setereo)
 song = OTHER.build(config.other.song)
 
 
-@other_sv.on_prefix(
-    ("网页截图", "截图"),
+@other_sv.on_regex(
+    (
+        '[a-zA-z]+://[^\s]*',
+        'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)',
+    ),
     block=True,
 )
 async def screenshot_handle(bot: Bot, event: Event):
-    text = event.text.strip()
+    print(event.command)
+    text = event.command
     if not text:
         return
     await bot.send(await browser.screenshot(text))

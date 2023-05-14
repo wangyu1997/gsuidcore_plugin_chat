@@ -3,6 +3,8 @@ import re
 import asyncio
 import random
 import base64
+from gsuid_core.bot import Bot
+from gsuid_core.logger import logger
 from httpx import AsyncClient
 from gsuid_core.logger import logger
 from PIL import Image, ImageDraw, ImageFont
@@ -203,6 +205,8 @@ def build_from_cfg(config, registry):
         raise RuntimeError(f'the name of the cfg for {registry.name} should be str !')
 
     cls = registry.get(config.name)
+    print(config.name)
+    print(registry)
     try:
         return cls(config)
     except Exception as e:
@@ -354,3 +358,24 @@ async def template_to_pic(
         browser=browser,
         **pages,
     )
+
+
+async def _send_img(url: str, bot: Bot):
+    async with AsyncClient(verify=False, timeout=None) as client:
+        try:
+            img_bytes = await request_img(url, client)
+            if img_bytes:
+                await bot.send(img_bytes)
+        except Exception as e:
+            logger.info(f'{type(e)}: 图片发送失败: {e}')
+
+
+async def send_img(urls, bot: Bot):
+    if isinstance(urls, str):
+        urls = [urls]
+    elif not isinstance(urls, list):
+        return
+    tasks = []
+    for url in urls:
+        tasks.append(asyncio.ensure_future(_send_img(url, bot)))
+    await asyncio.gather(*tasks)
