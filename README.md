@@ -41,22 +41,28 @@ chat: #聊天模块
     cd_time: 120 # bing重置的CD, 下同
     proxy: '' # bing的代理,国内部署需配置, 下同
     style: creative # bing的风格 支持 [creative/balanced/precise]
+    show_create: true # 是否跳过创建新回话的提示 下同
   Normal:
     api_keys: # 普通聊天的key, 可以从leyoyu.cn获取
     - xxxxx
     nickname: Paimon # 机器人昵称
     person: miao # 默认加载人格，可在data/personality中替换文件
     proxy: http://xxx # 国内代理，国外访问不了
+    show_create: true
   Openai:
     api_keys: # api key 可以配置多条
     - xxxx
     max_tokens: 1000 # 最发返回token数量
+    show_create: true
   default: chat # 默认聊天引擎 [chat/bing/openai]
 genshin:
   material:
     push_time: '4:10' # 材料推送时间
     skip_three: false # 是否跳过三星武器
 image:
+  BingImg: # BingAI画图模块
+    name: BingImg
+    query: Bing AI
   FilckrImg:
     api_keys: # filckr api 
     - xxxx
@@ -105,6 +111,19 @@ other:
 - [删除提醒xxx]  (删除提醒 如 删除提醒吃饭)
 
 - [点歌 xxx]  (从网易云获取第一首可以下载的歌曲)
+- [画图 xxx]  (调用BingAI的ImageCreator模块创作4张图片 本质是Dell-E)
+
+
+- [@xxx (设置)昵称 xxx]  (账单模块 为某个人设置一个昵称)
+- [创建账单|重置账单]  (账单模块 在群聊中清空账单)
+- [@xx@xx@xx 账单 烧烤 200]  (账单模块 在群聊中创建新的项目并将@的所有人添加为平摊者)
+- [撤销账单]  (账单模块 撤销本人支出的上一笔账单)
+- [我的账单]  (账单模块 查看我的支出项目)
+- [清算]  (账单模块 通过创建的账单开始结算每个人应该给其他人转账多少)
+- [今日账单]  (账单模块 查看今日账单)
+
+
+
 
 
 # 注意事项
@@ -184,6 +203,23 @@ other:
     1. 推荐使用自己的Vercel部署网易云api 参考: https://github.com/Binaryify/NeteaseCloudMusicApi
 
     2. 默认下载列表可以获取mp3的第一首歌曲，并发送歌曲信息和文件（由于wechat限制，没法发送语音）
+
+
+
+## 关于画图:
+
+    1. 使用的BingAI的ImageCreator创作图片，只需要使用`画图 你的描述`即可
+
+
+## 关于账单:
+
+    1. 该模块是本人在旅行途中方便大家AA临时写的模块，使用过程中可能会有bug，但是只要添加项目成功，金额不会算错，还存在BUG，尚未修复
+
+    2. 因为GsCore无法获取wechat好友的nickname，为了方便起见，先使用`昵称`指令，该命令会在群聊账单中为at的好友创建一个wxid->nickname的映射，方便清算和转账
+
+    3. 常用的功能主要是`账单`和`清算`，设置好昵称之后，每天结算的时候只需要`创建账单`，然后每个人依次使用`账单指令`,根据本人当日支出的款项并at需要平摊的好友即可创建成功。
+
+    4. `查看账单`确定当前账单无误之后，使用`清算`命令即可对每个人自动计算应该给哪些人转账多少钱（没有做复杂的转账数量最小化）
 
 
 ## 感谢两位佬的源码参考:
