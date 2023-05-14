@@ -76,6 +76,10 @@ other:
     api: https://netease-cloud-music-api-git-master-wangyu1997.vercel.app
   todo:
     push_time: 30 # 开始推送的最小时间（默认30分钟，如有任务在30分钟内ddl，则触发提醒）
+extract:
+  bilibili: # bilibili模块
+    display_image: true 
+    display_image_list: true
 
 ```
 
