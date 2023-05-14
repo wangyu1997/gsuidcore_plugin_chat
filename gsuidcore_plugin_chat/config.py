@@ -10,11 +10,13 @@ meta_config = CfgNode()
 meta_config.chat = CfgNode()
 meta_config.chat.name = "ChatEngine"
 meta_config.chat.default = "chat"
+meta_config.chat.group = True
 
 # -----------------------------------------------------------------------------
 # Bing setting
 # -----------------------------------------------------------------------------
 meta_config.chat.Bing = CfgNode()
+meta_config.chat.Bing.show_create = True
 meta_config.chat.Bing.name = "BingChat"
 meta_config.chat.Bing.cd_time = 120
 meta_config.chat.Bing.style = "creative"
@@ -24,6 +26,7 @@ meta_config.chat.Bing.proxy = ""
 # Normal Chat setting
 # -----------------------------------------------------------------------------
 meta_config.chat.Normal = CfgNode()
+meta_config.chat.Normal.show_create = False
 meta_config.chat.Normal.name = "NormalChat"
 meta_config.chat.Normal.api_url = "https://api.aigcfun.com/api/v1/text?key=<KEY>"
 meta_config.chat.Normal.api_keys = ["xxx"]
@@ -43,6 +46,7 @@ meta_config.chat.Normal.default = "miao"
 # Openai setting
 # -----------------------------------------------------------------------------
 meta_config.chat.Openai = CfgNode()
+meta_config.chat.Openai.show_create = True
 meta_config.chat.Openai.name = "OpenaiChat"
 meta_config.chat.Openai.cd_time = 120
 meta_config.chat.Openai.max_tokens = 1000
@@ -84,6 +88,14 @@ meta_config.image.WebSearchImg.api_keys = ["xxxxx"]
 meta_config.image.WebSearchImg.api_url = (
     "https://contextualwebsearch-websearch-v1.p.rapidapi.com/api/Search/ImageSearchAPI"
 )
+
+
+# -----------------------------------------------------------------------------
+#  filckr setting
+# -----------------------------------------------------------------------------
+meta_config.image.BingImg = CfgNode()
+meta_config.image.BingImg.name = "BingImg"
+meta_config.image.BingImg.query = "Bing AI"
 
 # -----------------------------------------------------------------------------
 #  genshin setting
