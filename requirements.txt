@@ -1,9 +1,8 @@
-EdgeGPT==0.2.1
+EdgeGPT==0.3.8.1
 httpx==0.24.0
+ImageGen==0.2
 Jinja2==3.1.2
-pandas==2.0.0
 Pillow==9.5.0
 playwright==1.29.1
-pydantic==1.10.6
-revChatGPT==4.2.5
+revChatGPT==5.0.2
 yacs==0.1.8
