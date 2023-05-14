@@ -48,7 +48,7 @@ chat: #聊天模块
     nickname: Paimon # 机器人昵称
     person: miao # 默认加载人格，可在data/personality中替换文件
     proxy: http://xxx # 国内代理，国外访问不了
-    show_create: true
+    show_create: false
   Openai:
     api_keys: # api key 可以配置多条
     - xxxx
@@ -60,9 +60,6 @@ genshin:
     push_time: '4:10' # 材料推送时间
     skip_three: false # 是否跳过三星武器
 image:
-  BingImg: # BingAI画图模块
-    name: BingImg
-    query: Bing AI
   FilckrImg:
     api_keys: # filckr api 
     - xxxx
@@ -77,7 +74,6 @@ other:
     data: default.data # 用户自定义发病语录
   song:
     api: https://netease-cloud-music-api-git-master-wangyu1997.vercel.app
-    name: Song
   todo:
     push_time: 30 # 开始推送的最小时间（默认30分钟，如有任务在30分钟内ddl，则触发提醒）
 
