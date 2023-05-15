@@ -79,6 +79,21 @@ async def dy(bot: Bot, event: Event) -> None:
 
 
 @extract_sv.on_regex(
+    ("vm.tiktok.com",),
+    block=True,
+)
+async def tiktok(bot: Bot, event: Event) -> None:
+    msg: str = str(event.raw_text).strip()
+    reg = r"(http:|https:)\/\/vm.tiktok.com\/[A-Za-z\d._?%&+\-=\/#]*"
+    dou_url = re.search(reg, msg, re.I)[0]
+    try:
+        await general_extract(dou_url, bot)
+    except Exception as e:
+        logger.info(f'{type(e)}: {str(e)}')
+        await bot.send("Tiktok解析出错啦")
+
+
+@extract_sv.on_regex(
     ("xiaohongshu.com",),
     block=True,
 )
