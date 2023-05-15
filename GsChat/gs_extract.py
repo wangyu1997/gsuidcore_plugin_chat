@@ -1,14 +1,18 @@
 import re
 import uuid
+from .config import config
 from gsuid_core.bot import Bot
 from gsuid_core.sv import SV
 from gsuid_core.logger import logger
 from gsuid_core.models import Event
 from httpx import AsyncClient
 from .utils import send_img, send_file
+from .extract import EXTRACT, BiliBiliExtract
 
 
 extract_sv = SV('提取网页', pm=5, priority=9, enabled=True, black_list=[], area='ALL')
+
+bili: BiliBiliExtract = EXTRACT.build(config.extract.bilibili)
 
 
 @extract_sv.on_regex(

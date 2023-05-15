@@ -158,18 +158,18 @@ meta_config.other.billing = CfgNode()
 meta_config.other.billing.name = "BillingModel"
 
 
-# # -----------------------------------------------------------------------------
-# #  extract setting
-# # -----------------------------------------------------------------------------
-# meta_config.extract = CfgNode()
+# -----------------------------------------------------------------------------
+#  extract setting
+# -----------------------------------------------------------------------------
+meta_config.extract = CfgNode()
 
-# # -----------------------------------------------------------------------------
-# #  bilibili setting
-# # -----------------------------------------------------------------------------
-# meta_config.extract.bilibili = CfgNode()
-# meta_config.extract.bilibili.name = "BiliBiliExtract"
-# meta_config.extract.bilibili.display_image = True
-# meta_config.extract.bilibili.display_image_list = True
+# -----------------------------------------------------------------------------
+#  bilibili setting
+# -----------------------------------------------------------------------------
+meta_config.extract.bilibili = CfgNode()
+meta_config.extract.bilibili.name = "BiliBiliExtract"
+meta_config.extract.bilibili.display_image = True
+meta_config.extract.bilibili.display_image_list = True
 
 
 def get_config():

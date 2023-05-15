@@ -206,8 +206,6 @@ def build_from_cfg(config, registry):
         raise RuntimeError(f'the name of the cfg for {registry.name} should be str !')
 
     cls = registry.get(config.name)
-    print(config.name)
-    print(registry)
     try:
         return cls(config)
     except Exception as e:
