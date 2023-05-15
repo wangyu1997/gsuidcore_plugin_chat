@@ -54,7 +54,8 @@ class BiliBiliExtract:
                 self.analysis_stat[group_id] = vurl
         except Exception as e:
             msg = "bili_keyword Error: {}".format(type(e))
-        return msg
+            vurl = None
+        return msg, vurl
 
     async def b23_extract(self, text: str, client: AsyncClient) -> str:
         b23 = re.compile(r"b23.tv/(\w+)|(bili(22|23|33|2233).cn)/(\w+)", re.I).search(

@@ -6,6 +6,7 @@ import base64
 from gsuid_core.bot import Bot
 from gsuid_core.logger import logger
 from httpx import AsyncClient
+from gsuid_core.segment import MessageSegment
 from gsuid_core.logger import logger
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
@@ -375,7 +376,34 @@ async def send_img(urls, bot: Bot):
         urls = [urls]
     elif not isinstance(urls, list):
         return
-    tasks = []
-    for url in urls:
-        tasks.append(asyncio.ensure_future(_send_img(url, bot)))
-    await asyncio.gather(*tasks)
+
+    bot_id = bot.bot_id
+    if bot_id == 'onebot_v12':
+        messages = []
+        for url in urls:
+            messages.append(MessageSegment.image(url))
+        await bot.send(messages)
+    else:
+        tasks = []
+        for url in urls:
+            tasks.append(asyncio.ensure_future(_send_img(url, bot)))
+        await asyncio.gather(*tasks)
+
+
+async def send_file(url, bot: Bot, filename=None):
+    bot_id = bot.bot_id
+    if bot_id == 'onebot_v12':
+        await bot.send(MessageSegment.file(content=url, file_name=filename))
+    else:
+        async with AsyncClient(verify=False, timeout=None) as client:
+            try:
+                response = await client.get(url)
+                if response:
+                    await bot.send(
+                        MessageSegment.file(
+                            content=response.content,
+                            file_name=filename,
+                        )
+                    )
+            except Exception as e:
+                logger.info(f'{type(e)}: 文件发送失败: {e}')
