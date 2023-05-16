@@ -30,7 +30,7 @@ class BaseImage(metaclass=ABCMeta):
         if convert:
             try:
                 align_words = await align_fn(self.query, keywords)
-                if '抱歉' in align_words:
+                if '抱歉' not in align_words:
                     await bot.send(
                         f'已根据查询文本 [{keywords}] 建立新的搜索词: [{align_words}]', at_sender=True
                     )
