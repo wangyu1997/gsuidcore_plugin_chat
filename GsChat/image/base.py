@@ -1,15 +1,11 @@
-import asyncio
 import copy
 import random
 from abc import ABCMeta, abstractmethod
 
-import httpx
-
 from gsuid_core.bot import Bot
 from gsuid_core.data_store import get_res_path
-from gsuid_core.logger import logger
 from gsuid_core.models import Event
-from ..utils import request_img
+from ..utils import send_img
 
 
 class BaseImage(metaclass=ABCMeta):
@@ -32,44 +28,24 @@ class BaseImage(metaclass=ABCMeta):
         keywords = event.text.strip()
 
         if convert:
-            align_flag = True
             try:
                 align_words = await align_fn(self.query, keywords)
                 if '抱歉' in align_words:
-                    align_flag = False
+                    await bot.send(
+                        f'已根据查询文本 [{keywords}] 建立新的搜索词: [{align_words}]', at_sender=True
+                    )
+                    keywords = align_words
             except:
-                align_flag = False
-
-            if align_flag:
-                await bot.send(
-                    f'已根据查询文本 [{keywords}] 建立新的搜索词: [{align_words}]', at_sender=True
-                )
-                keywords = align_words
+                pass
 
         self.send_urls = []
         await self._search(keywords.lower(), bot)
         if self.send_urls:
-            await self.send_imgs(bot)
+            await send_img(self.send_urls, bot)
 
     @abstractmethod
     async def _search(self, keywords, bot: Bot):
         pass
-
-    async def send_imgs(self, bot: Bot):
-        urls = self.send_urls
-        tasks = []
-        for url in urls:
-            tasks.append(asyncio.ensure_future(self._send_img(url, bot)))
-        await asyncio.gather(*tasks)
-
-    async def _send_img(self, url: str, bot: Bot):
-        async with httpx.AsyncClient(verify=False, timeout=None) as client:
-            try:
-                img_bytes = await request_img(url, client)
-                if img_bytes:
-                    await bot.send(img_bytes)
-            except Exception as e:
-                logger.info(f'{type(e)}: 图片发送失败: {e}')
 
     @abstractmethod
     def init_data(self):
