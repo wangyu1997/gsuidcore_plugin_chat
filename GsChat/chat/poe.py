@@ -2,8 +2,7 @@ import asyncio
 import os
 import time
 
-from revChatGPT.V3 import Chatbot as openaiChatbot
-
+from poe import Client
 from gsuid_core.bot import Bot
 from gsuid_core.logger import logger
 from gsuid_core.models import Event
@@ -20,10 +19,8 @@ class OpenaiChat(BaseChat):
     async def _create(self, user_id):
         current_time = int(time.time())
         api_key = self._get_random_key()
-        chat_bot = openaiChatbot(
-            api_key=api_key,
-            max_tokens=self.max_tokens,
-        )
+        chat_bot = poe.Client("TOKEN_HERE")
+
         self.chat_dict[user_id] = {
             "chatbot": chat_bot, "last_time": current_time, "sessions_number": 0, "isRunning": False}
 

@@ -14,6 +14,7 @@ class ChatEngine:
             'bing': 'Bing',
             'chat': 'Normal',
             'openai': 'Openai',
+            'poe': 'Poe'
         }  # nickname->engine name
         self.bots = {}  # 维护不同engine对应的bot singleton
         self.bot_user_map = {}

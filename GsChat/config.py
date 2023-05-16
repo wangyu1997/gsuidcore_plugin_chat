@@ -56,6 +56,17 @@ meta_config.chat.Openai.proxy = ""
 meta_config.chat.Openai.api_keys = []
 
 # -----------------------------------------------------------------------------
+# POE setting
+# -----------------------------------------------------------------------------
+meta_config.chat.Poe = CfgNode()
+meta_config.chat.Poe.show_create = True
+meta_config.chat.Poe.name = "POEChat"
+meta_config.chat.Poe.cd_time = 120
+meta_config.chat.Poe.proxy = ""
+meta_config.chat.Poe.model = 'capybara'
+meta_config.chat.Poe.api_keys = ['']
+
+# -----------------------------------------------------------------------------
 # image setting
 # -----------------------------------------------------------------------------
 meta_config.image = CfgNode()
@@ -87,7 +98,7 @@ meta_config.image.WebSearchImg.api_url = (
 )
 
 # -----------------------------------------------------------------------------
-#  filckr setting
+#  bingai setting
 # -----------------------------------------------------------------------------
 meta_config.image.BingImg = CfgNode()
 meta_config.image.BingImg.name = "BingImg"

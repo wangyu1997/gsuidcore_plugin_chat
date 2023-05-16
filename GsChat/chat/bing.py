@@ -105,15 +105,18 @@ class BingChat(BaseChat):
             target = target[1:]
         return target
 
-    async def switch_style(self, user_id, style):
+    async def switch_style(self, user_id, style, bot, event):
         """
         开关风格
         :param style:
         :param user_id:
         :return:
         """
-        print(self.chat_dict)
-        if user_id in self.chat_dict:
-            self.chat_dict[user_id]['model'] = style
-            return True
-        return False
+        if user_id not in self.chat_dict:
+            res = await self.create(user_id, bot, event)
+            if res:
+                if self.config.show_create:
+                    await bot.send(f'{self.config.name} 对话已创建')
+            else:
+                return
+        self.chat_dict[user_id]['model'] = style

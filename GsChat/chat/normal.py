@@ -144,14 +144,19 @@ class NormalChat(BaseChat):
             message = message.lstrip(f"{self.nickname}：").lstrip(f"{self.nickname}:")
             return message
 
-    async def switch_person(self, user_id):
+    async def switch_style(self, user_id, style, bot, event):
         """
         开关人格
+        :param style:
         :param user_id:
         :return:
         """
-        if user_id in self.chat_dict:
-            self.chat_dict[user_id]['person'] = not self.chat_dict[user_id]['person']
-            self.chat_dict[user_id]['session'] = []
-            return True
-        return False
+        if user_id not in self.chat_dict:
+            res = await self.create(user_id, bot, event)
+            if res:
+                if self.config.show_create:
+                    await bot.send(f'{self.config.name} 对话已创建')
+            else:
+                return
+        self.chat_dict[user_id]['person'] = style
+        self.chat_dict[user_id]['session'] = []

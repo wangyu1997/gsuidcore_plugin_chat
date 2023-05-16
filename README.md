@@ -14,7 +14,7 @@
 
 # 基于gsuid_core的智能聊天插件(理论兼容多个平台)
 
-    使用前请务必看完readme, 这是一个融合了openai, newbing, 词库的智能回复插件
+    使用前请务必看完readme, 这是一个融合了openai, newbing, Poe 的智能回复插件
 
 
 
@@ -54,6 +54,13 @@ chat: #聊天模块
     - xxxx
     max_tokens: 1000 # 最发返回token数量
     show_create: true
+  Poe:
+    api_keys: # poe的p-b文件
+    - xxx
+    cd_time: 120
+    model: capybara # 默认使用Sega模型，效果最好
+    proxy: ''
+    show_create: true
   default: chat # 默认聊天引擎 [chat/bing/openai]
 genshin:
   material:
@@ -92,8 +99,8 @@ extract:
 - [切换模式|cm] (切换群内聊天模式,群聊模式可以所有群员共享一个session)
 - [查看引擎|ce] (查看当前的聊天模式)
 - [重置对话|reset]  (重置当前的聊天模式)
-- [清除人格|加载人格]  (暂时清除|加载当前会话的人格 需要建立在已有Normal对话的情况下)
-- [切换风格 c/b/p]  (切换当前Bing对话风格 需要建立在已有Bing对话的情况下)
+- [风格]  (查看切换风格提示 详情见下文)
+- [切换风格+序号]  (切换当前引擎的不同风格和模型 详情见下文)
 
 - [搜图 xxx]  (调用搜图引擎进行关键词搜索图片)
 - [转搜图 xxx]  (搜图之前调用chatgpt进行query对齐)
@@ -165,12 +172,27 @@ extract:
 
         使用了与openai通讯的接口 [ChatGPT](https://github.com/acheong08/ChatGPT)  
     
-    4. bing和openai的proxy配置
+    4. poe
+        1. 由于poe自身限制，不支持多session会话，所有的会话都会出现在一个session中，可以参考poe官网的设计，因此这里并没有为每个user单独创建bot，而是共用一个bot
+        2. poe响应失败会自动创建新的client，理论上不需要重置对话
+        3. 如果需要多人保持不同的会话可以使用不同的风格
+        4. 后续可能会考虑通过自定义bot的方式支持多个session
+
+        5. 关于api-key的获取，只需要登录poe，然后F12查看key为p-b的cookie对应的value即可
+
+    5. bing和openai的proxy配置
         1. 你需要使用v2ray或者clash等代理工具开启本地监听端口
         2. 根据http和socks5的不同, 配置不同, 
         3. 以v2rayN举例, 本地监听端口1080, 你应该配置成"socks5://127.0.0.1:1080"或者"http://127.0.0.1:1081"
+  
+## 关于切换风格模块:
+    1. 只支持Bing，Normal，Poe三个引擎切换风格，其他情况会给出提示
+    
+    2. Bing有三种风格：1. 创造型，2. 平衡型 3. 精准型 详情参考Bing官网
+    
+    3. Poe有四种风格：1. Sega，2. Claude 3. ChatGPT 4. Dragonfly
 
-
+    4. Normal有两种风格：1. 无人格 2. 预设人格 相当于清除人格操作
 
 
 ## 关于图片搜索:
