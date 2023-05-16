@@ -1,21 +1,18 @@
-import copy
-from .billing import BILLING, BillingModel
 from gsuid_core.bot import Bot
-from gsuid_core.sv import SV
-from gsuid_core.segment import MessageSegment
 from gsuid_core.models import Event
-from gsuid_core.logger import logger
+from gsuid_core.segment import MessageSegment
+from gsuid_core.sv import SV
+from .billing import BILLING, BillingModel
 from .config import config
 
 bill_sv = SV("账单事项", pm=6, priority=9, enabled=True, black_list=[], area="GROUP")
 bill_admin_sv = SV("账单管理员", pm=1, priority=9, enabled=True, black_list=[], area="GROUP")
 
-
 bill_model: BillingModel = BILLING.build(config.other.billing)
 
 
 @bill_sv.on_fullmatch(
-    ("查看账单"),
+    "查看账单",
     block=True,
 )
 async def get_billing(bot: Bot, event: Event):
@@ -28,7 +25,7 @@ async def get_billing(bot: Bot, event: Event):
 
 
 @bill_sv.on_fullmatch(
-    ("今日账单"),
+    "今日账单",
     block=True,
 )
 async def today_billing(bot: Bot, event: Event):
@@ -54,7 +51,7 @@ async def get_billing(bot: Bot, event: Event):
 
 
 @bill_sv.on_fullmatch(
-    ("我的账单"),
+    "我的账单",
     block=True,
 )
 async def my_billing(bot: Bot, event: Event):
@@ -78,7 +75,7 @@ async def new_billing(bot: Bot, event: Event):
 
 
 @bill_admin_sv.on_fullmatch(
-    ("撤销账单"),
+    "撤销账单",
     block=True,
 )
 async def new_billing(bot: Bot, event: Event):
@@ -92,7 +89,7 @@ async def new_billing(bot: Bot, event: Event):
 
 
 @bill_sv.on_keyword(
-    ("账单"),
+    "账单",
     block=True,
 )
 async def new_billing(bot: Bot, event: Event):

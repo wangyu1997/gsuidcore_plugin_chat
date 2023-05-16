@@ -39,7 +39,7 @@ async def finish_notice(bot: Bot, event: Event):
 
 
 @todo_sv.on_fullmatch(
-    ('查看提醒'),
+    '查看提醒',
     block=True,
 )
 async def change_notice(bot: Bot, event: Event):
@@ -48,7 +48,7 @@ async def change_notice(bot: Bot, event: Event):
 
 
 @todo_sv.on_fullmatch(
-    ('推送测试'),
+    '推送测试',
     block=True,
 )
 async def change_notice(bot: Bot, event: Event):

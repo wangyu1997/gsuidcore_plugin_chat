@@ -1,13 +1,14 @@
-from .base import BaseChat
-import os
 import asyncio
+import os
 import time
-from .build import CHAT
-from gsuid_core.bot import Bot
-from gsuid_core.models import Event
-from gsuid_core.logger import logger
+
 from revChatGPT.V3 import Chatbot as openaiChatbot
-from ..utils import txt_to_img
+
+from gsuid_core.bot import Bot
+from gsuid_core.logger import logger
+from gsuid_core.models import Event
+from .base import BaseChat
+from .build import CHAT
 
 
 @CHAT.register_module()

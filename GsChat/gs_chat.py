@@ -1,9 +1,10 @@
-import re
 import random
-from .chat import BaseChat, CHATENGINE
+import re
+
 from gsuid_core.bot import Bot
-from gsuid_core.sv import SV
 from gsuid_core.models import Event
+from gsuid_core.sv import SV
+from .chat import BaseChat, CHATENGINE
 from .config import config
 
 chat_sv = SV('聊天', pm=6, priority=10, enabled=True, black_list=[], area='ALL')
@@ -165,26 +166,27 @@ async def handle_msg(bot: Bot, event: Event, engine_name: str = None):
     ('清除人格', '加载人格'),
     block=True,
 )
-async def reserve_handle(bot: Bot, event: Event):
+async def handle_person(bot: Bot, event: Event):
     action = event.command.replace('人格', '')
     user_id, _, engine_name = chat_engine.get_bot_info(event)
-    if engine_name == "Normal":
-        chatbot = await chat_engine.get_singleton_bot(engine_name)
-        await chatbot.switch_person(user_id)
+    chatbot = await chat_engine.get_singleton_bot('Normal')
+    res = await chatbot.switch_person(user_id)
+    if res:
         await bot.send(f'已经暂时{action}了人格')
 
-# @bing.on_prefix('切换bing', block=True,)
-# async def reserve_bing(bot: Bot, event: Event) -> None:
-#     text = event.text.strip()
 
-#     style = config.newbing_style
+@chat_sv.on_prefix(
+    '切换风格',
+    block=True,
+)
+async def handle_style(bot: Bot, event: Event):
+    style = event.text.strip()[:1].lower()
+    if not style or style not in ['c', 'b', 'p']:
+        await bot.send('请输入 [切换风格 c/b/p] 来切换风格\n c: creative \n b: balance \n p: precise')
 
-#     if text == '准确':
-#         style = 'precise'
-#     elif text == "平衡":
-#         style = 'balanced'
-#     else:
-#         style = "creative"
-
-#     await newbing_new_chat(bot, event=event, style=style)
-#     await bot.send(f"newbing会话已重置, 当前对话模式为[{style}].", at_sender=True)
+    user_id, _, engine_name = chat_engine.get_bot_info(event)
+    style_map = {'c': 'creative', 'b': 'balanced', 'p': 'precise'}
+    chatbot = await chat_engine.get_singleton_bot('Bing')
+    res = await chatbot.switch_style(user_id, style_map[style])
+    if res:
+        await bot.send(f'切换成功，已为您创建新的会话\n当前Bing的风格为 [{style_map[style]}]')

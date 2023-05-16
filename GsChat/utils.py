@@ -1,7 +1,6 @@
 import asyncio
 import base64
 import inspect
-import random
 import re
 from contextlib import asynccontextmanager
 from contextlib import suppress
@@ -19,10 +18,10 @@ from gsuid_core.bot import Bot
 from gsuid_core.logger import logger
 from gsuid_core.segment import MessageSegment
 
-
 LINE_CHAR_COUNT = 30 * 2
 CHAR_SIZE = 30
 TABLE_WIDTH = 4
+
 
 async def request_img(img_url, client):
     response = await client.get(img_url)
@@ -34,8 +33,6 @@ async def request_img(img_url, client):
 
 
 # 简单去除wx at有可能误杀
-
-
 async def remove_at(msg: str):
     if ' ' not in msg and '@' in msg:
         msg = ''
@@ -191,7 +188,7 @@ class BaseBrowser:
         except NotImplementedError:
             logger.warning('Playwright', '初始化失败，请关闭FASTAPI_RELOAD')
         except Error:
-            await install_browser()
+            await self.install_browser()
             self._browser = await self.launch_browser(**kwargs)
         return self._browser
 
@@ -275,7 +272,6 @@ async def template_to_pic(
     browser=None,
 ) -> bytes:
     """使用jinja2模板引擎通过html生成图片
-
     Args:
         template_path (str): 模板路径
         template_name (str): 模板名

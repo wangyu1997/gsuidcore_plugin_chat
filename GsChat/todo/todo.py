@@ -1,16 +1,17 @@
-import json
-import copy
 import asyncio
+import copy
+import json
 import random
-from pathlib import Path
 from datetime import datetime, timedelta
-from .build import TODO
+from pathlib import Path
+
 from gsuid_core.bot import Bot
-from gsuid_core.models import Event
 from gsuid_core.data_store import get_res_path
-from gsuid_core.segment import MessageSegment
 from gsuid_core.gss import gss
 from gsuid_core.logger import logger
+from gsuid_core.models import Event
+from gsuid_core.segment import MessageSegment
+from .build import TODO
 from .utils import get_time
 from ..utils import BaseBrowser, template_to_pic
 

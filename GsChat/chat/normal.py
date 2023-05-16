@@ -1,15 +1,17 @@
-from .base import BaseChat
-import os
-import httpx
 import copy
-from pathlib import Path
 import json
+import os
 import time
+from pathlib import Path
+
+import httpx
+
+from gsuid_core.bot import Bot
+from gsuid_core.logger import logger
+from gsuid_core.models import Event
+from .base import BaseChat
 from .build import CHAT
 from ..utils import download_file
-from gsuid_core.bot import Bot
-from gsuid_core.models import Event
-from gsuid_core.logger import logger
 
 
 @CHAT.register_module()
@@ -151,3 +153,5 @@ class NormalChat(BaseChat):
         if user_id in self.chat_dict:
             self.chat_dict[user_id]['person'] = not self.chat_dict[user_id]['person']
             self.chat_dict[user_id]['session'] = []
+            return True
+        return False

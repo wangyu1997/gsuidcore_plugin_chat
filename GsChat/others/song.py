@@ -1,10 +1,9 @@
-import os
 import copy
+
 import httpx
-import asyncio
-import threading
-from .build import OTHER
+
 from gsuid_core.logger import logger
+from .build import OTHER
 
 
 @OTHER.register_module()
@@ -19,7 +18,7 @@ class Song:
     async def get_song(self, song_name):
         return await self.get_song_id(song_name)
 
-    async def get_song_id(self, singer: str) -> str:
+    async def get_song_id(self, singer: str):
         params = {
             "keywords": "",
         }
@@ -27,7 +26,7 @@ class Song:
         params["keywords"] = singer
 
         try:
-            async with httpx.AsyncClient(timeout=None, verify=None) as client:
+            async with httpx.AsyncClient(timeout=None, verify=False) as client:
                 res = await client.get(url, params=params)
                 res = res.json()
                 for song in res["result"]["songs"]:
@@ -48,4 +47,4 @@ class Song:
                         }
         except Exception as e:
             logger.error(f"{type(e)}: get song failed {str(e)}")
-        return None
+            return None

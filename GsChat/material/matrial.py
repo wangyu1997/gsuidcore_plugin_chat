@@ -1,13 +1,11 @@
 import copy
-from .build import MATERIAL
+import threading
+
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
-from gsuid_core.logger import logger
-from typing import Dict, Union
+from .build import MATERIAL
 from .utils import *
 from .utils import _get_uid
-import asyncio
-import threading
 
 
 @MATERIAL.register_module()
@@ -66,27 +64,25 @@ class MaterialModel:
         # 获取每日材料图片
         msg = await generate_daily_msg(target, weekday, timedelta)
         return msg
-      
-      
-    async def week_push(self, name:str):
-      # 获取不包含触发关键词的消息文本
-      arg, target = name, ""
-      # 处理输入
-      for boss_alias in WEEKLY_BOSS:
-          if arg in boss_alias:
-              target = boss_alias[0]
-              break
-      if not arg:
-          # 只发送了命令触发词，返回周本总图
-          target = "all"
-      elif not target:
-          # 发送了无法被识别为周本名的内容，忽略
-          return
-      # 获取周本材料图片
-      msg = await generate_weekly_msg(target)
-      return msg
-    
-    
+
+    async def week_push(self, name: str):
+        # 获取不包含触发关键词的消息文本
+        arg, target = name, ""
+        # 处理输入
+        for boss_alias in WEEKLY_BOSS:
+            if arg in boss_alias:
+                target = boss_alias[0]
+                break
+        if not arg:
+            # 只发送了命令触发词，返回周本总图
+            target = "all"
+        elif not target:
+            # 发送了无法被识别为周本名的内容，忽略
+            return
+        # 获取周本材料图片
+        msg = await generate_weekly_msg(target)
+        return msg
+
     async def subscribe(self, bot_id: str, event: Event):
         text = event.text
         user_id = event.user_id
@@ -97,16 +93,12 @@ class MaterialModel:
 
         return await sub_helper(action, action_id, bot_id)
 
-
     async def daily_push(self):
         cfg = await sub_helper()
         assert isinstance(cfg, Dict)
 
         msg = await generate_daily_msg("update")
         return msg, cfg
-
-
-
 
     async def generate_calc_msg(self, name: str, bot: Bot, event: Event) -> Union[bytes, str]:
         """原神计算器材料图片生成入口"""

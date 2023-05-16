@@ -1,9 +1,9 @@
 import copy
-from .build import OTHER
 from typing import Optional, Literal, Tuple
-from ..utils import BaseBrowser
 
 from gsuid_core.logger import logger
+from .build import OTHER
+from ..utils import BaseBrowser
 
 
 @OTHER.register_module()
@@ -17,8 +17,8 @@ class Browser:
                          *,
                          elements=None,
                          timeout: Optional[float] = 100000,
-                         wait_until: Literal["domcontentloaded", "load",
-                                             "networkidle", "load", "commit"] = "networkidle",
+                         wait_until: Literal[
+                             "domcontentloaded", "load", "networkidle", "load", "commit"] = "networkidle",
                          viewport_size: Tuple[int, int] = (1920, 1080),
                          full_page=True,
                          **kwargs):
@@ -26,8 +26,8 @@ class Browser:
         if not url.startswith(('https://', 'http://')):
             url = f'https://{url}'
         viewport_size = {'width': viewport_size[0], 'height': viewport_size[1]}
-        brower = await self.base_browser.get_browser()
-        page = await brower.new_page(
+        browser = await self.base_browser.get_browser()
+        page = await browser.new_page(
             viewport=viewport_size,
             **kwargs)
         try:
@@ -35,6 +35,8 @@ class Browser:
             assert page
             if not elements:
                 return await page.screenshot(timeout=timeout, full_page=full_page)
+
+            clip = None
             for e in elements:
                 card = await page.wait_for_selector(e, timeout=timeout, state='visible')
                 assert card

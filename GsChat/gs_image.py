@@ -1,15 +1,16 @@
 import copy
-from .chat import CHAT, NormalChat
-from .image import IMAGEENGINE
-from gsuid_core.bot import Bot
-from gsuid_core.sv import SV
-from gsuid_core.models import Event
-from gsuid_core.logger import logger
-from .config import config
+
 from yacs.config import CfgNode
 
-image_sv = SV('图像搜索', pm=6, priority=10, enabled=True, black_list=[], area='ALL')
+from gsuid_core.bot import Bot
+from gsuid_core.logger import logger
+from gsuid_core.models import Event
+from gsuid_core.sv import SV
+from .chat import CHAT, NormalChat
+from .config import config
+from .image import IMAGEENGINE
 
+image_sv = SV('图像搜索', pm=6, priority=10, enabled=True, black_list=[], area='ALL')
 
 normal_cfg: CfgNode = copy.deepcopy(config.chat.Normal)
 normal_cfg.defrost()
@@ -58,7 +59,7 @@ async def _(bot: Bot, event: Event):
     bot_name = event.text.strip().lower()
 
     if bot_name not in ['filckr', 'websearch']:
-        bot.send(f"暂时不支持引擎 [{bot_name}] ")
+        await bot.send(f"暂时不支持引擎 [{bot_name}] ")
 
     engine = image_engine.get_engine(bot_name)
     image_engine.change_engine(engine)

@@ -1,25 +1,27 @@
-from .base import BaseChat
-import re
 import json
+import re
 import time
-from .build import CHAT
+
 from EdgeGPT import Chatbot as bingChatbot
+
 from gsuid_core.bot import Bot
-from gsuid_core.models import Event
 from gsuid_core.logger import logger
-from ..utils import txt_to_img
+from gsuid_core.models import Event
+from .base import BaseChat
+from .build import CHAT
 
 
 @CHAT.register_module()
 class BingChat(BaseChat):
     def __init__(self, config=None):
         super(BingChat, self).__init__(config)
+        self.style = self.config.style
 
     async def _create(self, user_id):
         current_time: int = int(time.time())
         chat_bot = bingChatbot(cookies=self._get_random_key())
         self.chat_dict[user_id] = {
-            "chatbot": chat_bot, "last_time": current_time, "model": self.config.style, "isRunning": False}
+            "chatbot": chat_bot, "last_time": current_time, "model": self.style, "isRunning": False}
 
     async def _ask(self, user_id, bot: Bot, event: Event):
         msg = event.text.strip()
@@ -102,3 +104,16 @@ class BingChat(BaseChat):
         while target[0] == "\n":
             target = target[1:]
         return target
+
+    async def switch_style(self, user_id, style):
+        """
+        开关风格
+        :param style:
+        :param user_id:
+        :return:
+        """
+        print(self.chat_dict)
+        if user_id in self.chat_dict:
+            self.chat_dict[user_id]['model'] = style
+            return True
+        return False

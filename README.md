@@ -23,8 +23,8 @@
 * 手动安装
   ```
     cd gsuid_core/gsuid_core/plugins
-    git clone git@github.com:wangyu1997/GsChat.git
-    cd GsChat
+    git clone https://github.com/wangyu1997/gsuidcore_plugin_chat.git
+    cd gsuidcore_plugin_chat
     poetry run pip install -r requirements.txt
   ```
 
@@ -92,6 +92,8 @@ extract:
 - [切换模式|cm] (切换群内聊天模式,群聊模式可以所有群员共享一个session)
 - [查看引擎|ce] (查看当前的聊天模式)
 - [重置对话|reset]  (重置当前的聊天模式)
+- [清除人格|加载人格]  (暂时清除|加载当前会话的人格 需要建立在已有Normal对话的情况下)
+- [切换风格 c/b/p]  (切换当前Bing对话风格 需要建立在已有Bing对话的情况下)
 
 - [搜图 xxx]  (调用搜图引擎进行关键词搜索图片)
 - [转搜图 xxx]  (搜图之前调用chatgpt进行query对齐)

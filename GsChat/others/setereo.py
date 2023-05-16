@@ -1,13 +1,14 @@
-import os
-import copy
-import random
 import asyncio
+import copy
+import os
+import random
 import threading
-from .build import OTHER
 from pathlib import Path
-from ..utils import download_file
-from gsuid_core.logger import logger
+
 from gsuid_core.data_store import get_res_path
+from gsuid_core.logger import logger
+from .build import OTHER
+from ..utils import download_file
 
 
 @OTHER.register_module()
@@ -16,6 +17,8 @@ class Setereo:
         self.config = copy.deepcopy(config)
         self.data_path = get_res_path('GsChat') / 'setereo'
         self.download_url = config.data_url
+        self.data_path.mkdir(parents=True, exist_ok=True)
+        self.data_file: Path = self.data_path / self.config.data
         self.datas = []
         self.initial()
 
@@ -25,8 +28,6 @@ class Setereo:
         ).start()
 
     async def init_data(self):
-        self.data_path.mkdir(parents=True, exist_ok=True)
-        self.data_file: Path = self.data_path / self.config.data
         if not os.path.exists(self.data_file):
             logger.warning(f'setereo 数据文件[{self.data_file.name}]不存在，已切换到默认配置')
             self.data_file: Path = self.data_path / self.config.default

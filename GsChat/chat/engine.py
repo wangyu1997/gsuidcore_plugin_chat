@@ -1,7 +1,9 @@
 import copy
+
+from yacs.config import CfgNode
+
 from gsuid_core.models import Event
 from .build import CHAT
-from yacs.config import CfgNode
 from .build import CHATENGINE
 
 

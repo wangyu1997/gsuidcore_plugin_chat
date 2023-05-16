@@ -1,6 +1,7 @@
-import re
 import json
+import re
 from datetime import datetime
+
 from gsuid_core.logger import logger
 
 

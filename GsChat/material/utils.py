@@ -1,30 +1,28 @@
+import asyncio
+import json
+from copy import deepcopy
+from datetime import datetime, timedelta
+from io import BytesIO
+from pathlib import Path
+from re import findall
+from re import match
+from time import time
+from typing import Dict, List, Union
+from typing import Tuple, Literal, Optional
+
+from PIL import Image, ImageDraw, ImageFont
+from httpx import HTTPError, AsyncClient
+from math import ceil
+
+from gsuid_core.data_store import get_res_path
+from gsuid_core.logger import logger
+from gsuid_core.utils.api.mys_api import mys_api
+from gsuid_core.utils.database.api import DBSqla
 from .config import (
     AMBR,
     WEEKLY_BOSS,
 )
-import json
-from httpx import HTTPError, AsyncClient
-import asyncio
-from time import time
-from io import BytesIO
-from re import findall
-from pathlib import Path
-from datetime import datetime, timedelta
-from typing import Dict, Tuple, Union, Literal, Optional
-from gsuid_core.utils.api.mys_api import mys_api
-from gsuid_core.utils.database.api import DBSqla
-from gsuid_core.logger import logger
-from PIL import Image
 from .config import MYS_API
-from re import match
-from math import ceil
-from io import BytesIO
-from pathlib import Path
-from copy import deepcopy
-from typing import Dict, List, Union
-from PIL import Image, ImageDraw, ImageFont
-from gsuid_core.logger import logger
-from gsuid_core.data_store import get_res_path
 
 CONFIG_DIR = get_res_path('GsChat') / 'materials'
 GSUID_DIR = get_res_path("GenshinUID")
@@ -524,7 +522,7 @@ async def update_config(config):
                 id_str
                 for id_str in update_res[item_type]
                 if material_id in update_res[item_type][id_str]["items"]
-                and id_str.isdigit()  # 排除旅行者 "10000005-anemo" 等
+                   and id_str.isdigit()  # 排除旅行者 "10000005-anemo" 等
             ]
             # 以 "5琴10000003,5优菈10000051,...,[rank][name][id]" 形式写入配置
             config[item_type][day_num][f"{material_name}-{material_id}"] = ",".join(
@@ -577,15 +575,15 @@ async def update_config(config):
             or material["type"] != "characterLevelUpMaterial"
             or int(material_id)
             in [
-                104104,  # 璀璨原钻
-                104114,  # 燃愿玛瑙
-                104124,  # 涤净青金
-                104134,  # 生长碧翡
-                104144,  # 最胜紫晶
-                104154,  # 自在松石
-                104164,  # 哀叙冰玉
-                104174,  # 坚牢黄玉
-            ]
+            104104,  # 璀璨原钻
+            104114,  # 燃愿玛瑙
+            104124,  # 涤净青金
+            104134,  # 生长碧翡
+            104144,  # 最胜紫晶
+            104154,  # 自在松石
+            104164,  # 哀叙冰玉
+            104174,  # 坚牢黄玉
+        ]
         ):
             # 包含计算器素材，但不在此处下载，后续计算时从米游社下载
             continue
@@ -614,7 +612,7 @@ async def update_config(config):
     config["weekly"] = {
         boss_info[0]: {
             f"{material_res['items'][material_id]['name']}-{material_id}": ""
-            for material_id in weekly_material[boss_idx * 3 : boss_idx * 3 + 3]
+            for material_id in weekly_material[boss_idx * 3: boss_idx * 3 + 3]
         }
         for boss_idx, boss_info in enumerate(_WEEKLY_BOSS)
     }
@@ -622,7 +620,7 @@ async def update_config(config):
     if len(weekly_material) > len(_WEEKLY_BOSS * 3):
         config["weekly"]["？？？"] = {
             f"{material_res['items'][material_id]['name']}-{material_id}": ""
-            for material_id in weekly_material[len(_WEEKLY_BOSS * 3) :]
+            for material_id in weekly_material[len(_WEEKLY_BOSS * 3):]
         }
 
     # 从升级材料中查找使用某周本材料的角色

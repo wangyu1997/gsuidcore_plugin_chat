@@ -1,5 +1,5 @@
-from .build import OTHER
 from .browser import Browser
+from .build import OTHER
 from .setereo import Setereo
 from .song import Song
 

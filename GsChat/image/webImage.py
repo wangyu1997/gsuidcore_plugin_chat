@@ -1,8 +1,10 @@
-from .base import BaseImage
-import httpx
 import random
-from .build import IMAGE
+
+import httpx
+
 from gsuid_core.bot import Bot
+from .base import BaseImage
+from .build import IMAGE
 
 
 @IMAGE.register_module()

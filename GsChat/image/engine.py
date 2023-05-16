@@ -1,6 +1,8 @@
 import copy
-from .build import IMAGE
+
 from yacs.config import CfgNode
+
+from .build import IMAGE
 from .build import IMAGEENGINE
 
 

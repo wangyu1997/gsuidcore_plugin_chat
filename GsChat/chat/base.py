@@ -1,11 +1,12 @@
 import copy
-import time
 import random
+import time
 from abc import ABCMeta, abstractmethod
-from gsuid_core.data_store import get_res_path
+
 from gsuid_core.bot import Bot
-from gsuid_core.models import Event
+from gsuid_core.data_store import get_res_path
 from gsuid_core.logger import logger
+from gsuid_core.models import Event
 from ..utils import txt_to_img
 
 
