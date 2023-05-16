@@ -127,25 +127,3 @@ async def general_extract(link, bot):
                 pics = data['pics']
                 if pics:
                     await send_img(pics, bot)
-
-
-async def general_extract(link, bot):
-    async with AsyncClient(timeout=None, verify=None) as client:
-        url = "https://www.wouldmissyou.com/api/parse/"
-        payload = {'link_text': link}
-        resp = await client.post(url, data=payload)
-        data = resp.json()['data']
-        if data['code'] == 0:
-            data = data['data']
-            await bot.send(data['title'])
-            if data['isVideo']:
-                vedio_url = data['videoUrls']
-                if isinstance(vedio_url, list):
-                    vedio_url = vedio_url[0]
-                filename = f'{str(uuid.uuid4())}.mp4'
-                print(vedio_url)
-                await send_file(vedio_url, bot, filename)
-            else:
-                pics = data['pics']
-                if pics:
-                    await send_img(pics, bot)

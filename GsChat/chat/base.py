@@ -6,6 +6,7 @@ from gsuid_core.data_store import get_res_path
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 from gsuid_core.logger import logger
+from ..utils import txt_to_img
 
 
 class BaseChat(metaclass=ABCMeta):
@@ -60,7 +61,19 @@ class BaseChat(metaclass=ABCMeta):
 
         self.chat_dict[user_id]["isRunning"] = True
 
-        return await self._ask(user_id, bot, event)
+        message = await self._ask(user_id, bot, event)
+
+        if not message:
+            return
+
+        try:
+            await bot.send(message, at_sender=True)
+        except Exception as e:
+            try:
+                await bot.send(f"文本消息被风控了,错误信息:{str(e)}, 这里咱尝试把文字写在图片上发送了", at_sender=True)
+                await bot.send(await txt_to_img(message), at_sender=True)
+            except Exception as ex:
+                await bot.send(f"消息全被风控了, 这是捕获的异常: \n{str(ex)}", at_sender=True)
 
     @abstractmethod
     async def _create(self, user_id):

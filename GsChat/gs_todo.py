@@ -1,17 +1,16 @@
 import copy
-from .chat import CHAT, NormalChat
-from .others import OTHER, Browser
-from .todo import TODO, ToDoModel
-from gsuid_core.bot import Bot
-from gsuid_core.sv import SV
-from gsuid_core.models import Event
-from gsuid_core.logger import logger
-from .config import config
+
 from yacs.config import CfgNode
+
 from gsuid_core.aps import scheduler
+from gsuid_core.bot import Bot
+from gsuid_core.models import Event
+from gsuid_core.sv import SV
+from .chat import CHAT, NormalChat
+from .config import config
+from .todo import TODO, ToDoModel
 
 todo_sv = SV('提醒事项', pm=6, priority=9, enabled=True, black_list=[], area='ALL')
-
 
 normal_cfg: CfgNode = copy.deepcopy(config.chat.Normal)
 normal_cfg.defrost()

@@ -1,80 +1,28 @@
-import inspect
-import re
 import asyncio
-import random
 import base64
-from gsuid_core.bot import Bot
-from gsuid_core.logger import logger
-from httpx import AsyncClient
-from gsuid_core.segment import MessageSegment
-from gsuid_core.logger import logger
-from PIL import Image, ImageDraw, ImageFont
-from io import BytesIO
+import inspect
+import random
+import re
 from contextlib import asynccontextmanager
 from contextlib import suppress
-from typing import Optional, Literal, Tuple, AsyncGenerator, AsyncIterator
-from playwright.async_api import Page, Browser, Playwright, async_playwright, Error
+from io import BytesIO
 from os import getcwd
 from typing import Literal, Union
-import jinja2
+from typing import Optional, AsyncGenerator
 
-bot_nickname: str = 'Paimon'
-poke__reply: tuple = (
-    "lsp你再戳？",
-    "连个可爱美少女都要戳的肥宅真恶心啊。",
-    "你再戳！",
-    "？再戳试试？",
-    "别戳了别戳了再戳就坏了555",
-    "我爪巴爪巴，球球别再戳了",
-    "你戳你🐎呢？！",
-    f"请不要戳{bot_nickname} >_<",
-    "放手啦，不给戳QAQ",
-    f"喂(#`O′) 戳{bot_nickname}干嘛！",
-    "戳坏了，赔钱！",
-    "戳坏了",
-    "嗯……不可以……啦……不要乱戳",
-    "那...那里...那里不能戳...绝对...",
-    "(。´・ω・)ん?",
-    "有事恁叫我，别天天一个劲戳戳戳！",
-    "欸很烦欸！你戳🔨呢",
-    "再戳一下试试？",
-    "正在关闭对您的所有服务...关闭成功",
-    "啊呜，太舒服刚刚竟然睡着了。什么事？",
-    "正在定位您的真实地址...定位成功。轰炸机已起飞",
-)
-hello_reply: tuple = (
-    "你好！",
-    "哦豁？！",
-    "你好！Ov<",
-    f"库库库，呼唤{bot_nickname}做什么呢",
-    "我在呢！",
-    "呼呼，叫俺干嘛",
-)
-nonsense: tuple = (
-    "你好啊",
-    "你好",
-    "在吗",
-    "在不在",
-    "您好",
-    "您好啊",
-    "你好",
-    "在",
-)
+import jinja2
+from PIL import Image, ImageDraw, ImageFont
+from httpx import AsyncClient
+from playwright.async_api import Page, Browser, Playwright, async_playwright, Error
+
+from gsuid_core.bot import Bot
+from gsuid_core.logger import logger
+from gsuid_core.segment import MessageSegment
+
 
 LINE_CHAR_COUNT = 30 * 2
 CHAR_SIZE = 30
 TABLE_WIDTH = 4
-
-
-async def rand_hello() -> str:
-    """随机问候语"""
-    return random.choice(hello_reply)
-
-
-async def rand_poke() -> str:
-    """随机戳一戳"""
-    return random.choice(poke__reply)
-
 
 async def request_img(img_url, client):
     response = await client.get(img_url)

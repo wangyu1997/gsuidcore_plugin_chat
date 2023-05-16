@@ -23,6 +23,11 @@ class NormalChat(BaseChat):
         self.proxy = self.config.proxy
         self.token_length = self.config.token_length
         self.nickname = self.config.nickname
+        self.download_url = self.config.data_url
+        self.person_path: Path = self.res_path / 'personalities'
+        self.person_path.mkdir(parents=True, exist_ok=True)
+        self.person_file: Path = self.person_path / f'{self.config.person}.json'
+
         self.headers = {
             'Content-Type': "application/json",
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36',
@@ -35,6 +40,7 @@ class NormalChat(BaseChat):
             "last_time": current_time,
             "sessions_number": 0,
             "isRunning": False,
+            'person': True
         }
 
     async def _ask(self, user_id, bot: Bot, event: Event):
@@ -42,30 +48,30 @@ class NormalChat(BaseChat):
 
         session = self.chat_dict[user_id]['session']
         try:
-            result = await self.normal_chat(msg, session)
+            load_person = self.chat_dict[user_id]['person']
+            result = await self.normal_chat(msg, session, load_person)
             self.chat_dict[user_id]["sessions_number"] += 1
             if result is None:
-                data = f"抱歉，{bot_nickname}暂时不知道怎么回答你呢, 试试使用openai或者bing吧~"
+                data = f"抱歉，{self.nickname}暂时不知道怎么回答你呢, 试试使用openai或者bing吧~"
                 await self.create(user_id, bot, event)
             else:
                 self.chat_dict[user_id]['session'].append((msg, result))
                 data = result
             self.chat_dict[user_id]["isRunning"] = False
-            await bot.send(data, at_sender=True)
+            return data
+
         except Exception as e:
-            logger.info(f"{type(e)}: NormalChat请求失败 {str(e)}")
-            return
+            await bot.send(f"{type(e)}: NormalChat请求失败 {str(e)}")
+            self.chat_dict[user_id]["isRunning"] = False
+            return None
 
     async def init_data(self):
-        self.download_url = self.config.data_url
-        self.person_path: Path = self.res_path / 'personalities'
-        self.person_path.mkdir(parents=True, exist_ok=True)
-        self.person_file: Path = self.person_path / f'{self.config.person}.json'
         if not os.path.exists(self.person_file):
-            logger.warning(f'normalchat 人设文件[{self.person_file.name}]不存在，已切换到默认配置')
-        self.person_file: Path = self.person_path / f'{self.config.default}.json'
+            logger.warning(f'NormalChat 人设文件[{self.person_file.name}]不存在，已切换到默认配置')
+            self.person_file: Path = self.person_path / f'{self.config.default}.json'
+
         if not os.path.exists(self.person_file):
-            logger.info(f'normalchat 正在下载人设文件...')
+            logger.info(f'NormalChat 正在下载人设文件...')
             await download_file(self.person_file, self.download_url)
 
         if os.path.exists(self.person_file) and str(self.person_file).endswith('.json'):
@@ -96,11 +102,15 @@ class NormalChat(BaseChat):
             except Exception as e:
                 logger.info(f'{type(e)}: 加载人格失败 {str(e)}')
 
-    async def normal_chat(self, msg, session=None):
+    async def normal_chat(self, msg, session=None, load_person=True):
         if not session:
             session = []
 
-        prompt = copy.deepcopy(self.prompt)
+        prompt = []
+
+        if load_person:
+            prompt = copy.deepcopy(self.prompt)
+
         for human, ai in session:
             prompt.append({'role': 'user', 'content': human})
             prompt.append({'role': 'assistant', 'content': ai})
@@ -123,6 +133,21 @@ class NormalChat(BaseChat):
         async with httpx.AsyncClient(
             verify=False, timeout=None, proxies=proxies
         ) as client:
-            res = await client.post(url, data=json.dumps(data), headers=self.headers)
+            res = await client.post(url, json=data, headers=self.headers)
             res = res.json()
-            return res["choices"][0]["text"].strip()
+            message = res["choices"][0]["text"].strip()
+
+            # 去除"nickname："
+            message = message.strip()
+            message = message.lstrip(f"{self.nickname}：").lstrip(f"{self.nickname}:")
+            return message
+
+    async def switch_person(self, user_id):
+        """
+        开关人格
+        :param user_id:
+        :return:
+        """
+        if user_id in self.chat_dict:
+            self.chat_dict[user_id]['person'] = not self.chat_dict[user_id]['person']
+            self.chat_dict[user_id]['session'] = []
