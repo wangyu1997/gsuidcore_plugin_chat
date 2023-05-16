@@ -263,6 +263,9 @@ extract:
 
     https://www.bilibili.com/video/av462355640
 
+    4. 抖音、小红书、tiktok短视频和图片去水印转发和解析 (初步测试 不保证完全适配)
+
+
 
 ## 感谢下面几位佬的源码参考:
 
