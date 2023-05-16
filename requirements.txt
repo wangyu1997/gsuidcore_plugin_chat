@@ -4,7 +4,6 @@ ImageGen==0.2
 Jinja2==3.1.2
 Pillow==9.5.0
 playwright==1.29.1
-poe==0.0.1
 poe_api==0.3.1
 revChatGPT==5.0.2
 yacs==0.1.8
