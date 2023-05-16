@@ -93,7 +93,7 @@ extract:
 # 使用方法
 
 
-- [bing|openai|chat xxx]  (使用bing/openai/国内chatgpt的聊天服务)
+- [bing|openai|chat|poe xxx]  (使用bing/openai/国内chatgpt/poe的聊天服务)
 - [@bot xxx]或私聊xxx (调用当前默认引擎回复)
 - [切换引擎bing|openai|chat] (切换默认聊天(群聊或私聊)引擎)
 - [切换模式|cm] (切换群内聊天模式,群聊模式可以所有群员共享一个session)
