@@ -40,14 +40,8 @@ class OpenaiChat(BaseChat):
         self.chat_dict[user_id]["isRunning"] = False  # 将当前会话状态设置为未运行
         sessions_number = self.chat_dict[user_id]["sessions_number"]
         data += f"\n\n当前会话: {sessions_number}   字数异常请发送\"重置对话\""
-        try:
-            await bot.send(data, at_sender=True)
-        except Exception as e:
-            try:
-                await bot.send(f"文本消息被风控了,错误信息:{str(e)}, 这里咱尝试把文字写在图片上发送了", at_sender=True)
-                await bot.send(await txt_to_img(data), at_sender=True)
-            except Exception as eeee:
-                await bot.send(f"消息全被风控了, 这是捕获的异常: \n{str(eeee)}", at_sender=True)
+
+        return data
 
     async def init_data(self):
         config = self.config
