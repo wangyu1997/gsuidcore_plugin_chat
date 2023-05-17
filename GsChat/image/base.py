@@ -3,8 +3,9 @@ import random
 from abc import ABCMeta, abstractmethod
 
 from gsuid_core.bot import Bot
-from gsuid_core.data_store import get_res_path
 from gsuid_core.models import Event
+from gsuid_core.data_store import get_res_path
+
 from ..utils import send_img
 
 
@@ -15,27 +16,30 @@ class BaseImage(metaclass=ABCMeta):
         self.keys = []
         self.Us = []
         self.query = config.query
-        self.res_path = get_res_path('GsChat')
+        self.res_path = get_res_path("GsChat")
         self.send_urls = []
         self.init_data()
 
-    async def search(self, align_fn, bot: Bot, event: Event, convert=False):
+    async def search(
+        self, align_fn, bot: Bot, event: Event, convert=False
+    ):
         """重置bot"""
         # 返回False则等待cd
         if not self._check_valid():
-            await bot.send(f'请先配置Cookie或API-Key再尝试使用.')
+            await bot.send("请先配置Cookie或API-Key再尝试使用.")
 
         keywords = event.text.strip()
 
         if convert:
             try:
                 align_words = await align_fn(self.query, keywords)
-                if '抱歉' not in align_words:
+                if "抱歉" not in align_words:
                     await bot.send(
-                        f'已根据查询文本 [{keywords}] 建立新的搜索词: [{align_words}]', at_sender=True
+                        f"已根据查询文本 [{keywords}] 建立新的搜索词: [{align_words}]",
+                        at_sender=True,
                     )
                     keywords = align_words
-            except:
+            except Exception:
                 pass
 
         self.send_urls = []

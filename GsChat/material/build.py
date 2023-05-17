@@ -1,3 +1,3 @@
 from ..utils import Registry
 
-MATERIAL = Registry('material')
+MATERIAL = Registry("material")

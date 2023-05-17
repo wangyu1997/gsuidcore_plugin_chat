@@ -1,16 +1,17 @@
-import asyncio
 import copy
 import json
 import random
-from datetime import datetime, timedelta
+import asyncio
 from pathlib import Path
+from datetime import datetime, timedelta
 
 from gsuid_core.bot import Bot
-from gsuid_core.data_store import get_res_path
 from gsuid_core.gss import gss
-from gsuid_core.logger import logger
 from gsuid_core.models import Event
+from gsuid_core.logger import logger
 from gsuid_core.segment import MessageSegment
+from gsuid_core.data_store import get_res_path
+
 from .build import TODO
 from .utils import get_time
 from ..utils import BaseBrowser, template_to_pic
@@ -84,10 +85,14 @@ class NoticeItem:
 
     def to_dict(self):
         return {
-            'name': self.name,
-            'start_time': datetime.strftime(self.start_date, self.format_str),
-            'end_time': datetime.strftime(self.end_date, self.format_str),
-            'group': self.group,
+            "name": self.name,
+            "start_time": datetime.strftime(
+                self.start_date, self.format_str
+            ),
+            "end_time": datetime.strftime(
+                self.end_date, self.format_str
+            ),
+            "group": self.group,
         }
 
     def __str__(self):
@@ -101,7 +106,7 @@ class NoticeItem:
 class ToDoModel:
     def __init__(self, config=None):
         self.config = copy.deepcopy(config)
-        self.write_file: Path = get_res_path('GsChat') / 'todo.json'
+        self.write_file: Path = get_res_path("GsChat") / "todo.json"
         self.user_map = {}
         self.user2bot = {}
         self.chatgpt_fn = None
@@ -113,9 +118,9 @@ class ToDoModel:
 
     def init_data(self):
         if not self.write_file.exists():
-            with self.write_file.open(mode='w') as f:
+            with self.write_file.open(mode="w") as f:
                 f.write("{}")
-        datas = json.loads(open(self.write_file, 'r').read())
+        datas = json.loads(open(self.write_file, "r").read())
         for bot_id in datas:
             if bot_id not in self.user_map:
                 self.user_map[bot_id] = {}
@@ -123,11 +128,13 @@ class ToDoModel:
                 if user_id not in self.user_map[bot_id]:
                     self.user_map[bot_id][user_id] = []
                 for item in datas[bot_id][user_id]:
-                    name = item['name']
-                    start_date = item['start_time']
-                    end_date = item['end_time']
-                    group = bool(item['group'])
-                    notice = NoticeItem(name, start_date, end_date, group)
+                    name = item["name"]
+                    start_date = item["start_time"]
+                    end_date = item["end_time"]
+                    group = bool(item["group"])
+                    notice = NoticeItem(
+                        name, start_date, end_date, group
+                    )
                     self.user_map[bot_id][user_id].append(notice)
 
         self.check_all()
@@ -151,7 +158,7 @@ class ToDoModel:
                 if not self.user_map[bot_id][user_id]:
                     del res[bot_id][user_id]
 
-        with self.write_file.open(mode='w') as f:
+        with self.write_file.open(mode="w") as f:
             f.write(json.dumps(res, ensure_ascii=False, indent=4))
 
         return self.user_map
@@ -162,16 +169,20 @@ class ToDoModel:
     async def add_todo(self, bot: Bot, event: Event):
         text = event.text.strip()
         bot_id = bot.bot_id
-        is_group = event.user_type != 'direct'
+        is_group = event.user_type != "direct"
         user_id = event.group_id if is_group else event.user_id
 
-        exceed_time, name, status = await get_time(text, self.chatgpt_fn)
+        exceed_time, name, status = await get_time(
+            text, self.chatgpt_fn
+        )
 
         if not status:
-            await bot.send(f'提醒解析失败，请调整输入后尝试.')
+            await bot.send("提醒解析失败，请调整输入后尝试.")
             return
 
-        notice = NoticeItem(name, datetime.today(), exceed_time, is_group)
+        notice = NoticeItem(
+            name, datetime.today(), exceed_time, is_group
+        )
         if notice.done:
             await bot.send(f"当前提醒[{name}]时间已经过了，添加失败")
             return
@@ -179,7 +190,9 @@ class ToDoModel:
         number = await self.add_to_list(user_id, bot_id, notice)
         self.check_all()
         if number:
-            await bot.send(f"已将[{name}]加入清单，ddl为{exceed_time}。\n当前共{number}项待办。")
+            await bot.send(
+                f"已将[{name}]加入清单，ddl为{exceed_time}。\n当前共{number}项待办。"
+            )
             img = await self.get_list_img(user_id, bot_id)
             await bot.send(img)
         else:
@@ -188,9 +201,11 @@ class ToDoModel:
     async def remove_todo(self, bot: Bot, event: Event):
         name = event.text.strip()
         bot_id = bot.bot_id
-        is_group = event.user_type != 'direct'
+        is_group = event.user_type != "direct"
         user_id = event.group_id if is_group else event.user_id
-        status, number = await self.remove_from_list(user_id, bot_id, name)
+        status, number = await self.remove_from_list(
+            user_id, bot_id, name
+        )
         self.check_all()
         if not status:
             await bot.send(f"不存在名为[{name}]的提醒。")
@@ -200,7 +215,11 @@ class ToDoModel:
             await bot.send(img)
 
     async def send_pic(self, bot: Bot, event: Event):
-        user_id = event.user_id if event.user_type == 'direct' else event.group_id
+        user_id = (
+            event.user_id
+            if event.user_type == "direct"
+            else event.group_id
+        )
         bot_id = bot.bot_id
         self.check_all()
         img = await self.get_list_img(user_id, bot_id)
@@ -214,26 +233,42 @@ class ToDoModel:
                     for user_id in self.user_map[bot_id]:
                         if self.user_map[bot_id][user_id]:
                             user_type = (
-                                'group'
-                                if self.user_map[bot_id][user_id][0].group
-                                else 'direct'
+                                "group"
+                                if self.user_map[bot_id][user_id][
+                                    0
+                                ].group
+                                else "direct"
                             )
                             send_flag = False
-                            for notice in self.user_map[bot_id][user_id]:
+                            for notice in self.user_map[bot_id][
+                                user_id
+                            ]:
                                 if notice.check_push(self.push_time):
                                     send_flag = True
                                     break
                             if send_flag:
-                                user_notices = await self.get_list_img(user_id, bot_id)
-                                await bot.target_send(
-                                    user_notices, user_type, user_id, bot_id, '', ''
+                                user_notices = await self.get_list_img(
+                                    user_id, bot_id
                                 )
-                                await asyncio.sleep(random.uniform(1, 3))
+                                await bot.target_send(
+                                    user_notices,
+                                    user_type,
+                                    user_id,
+                                    bot_id,
+                                    "",
+                                    "",
+                                )
+                                await asyncio.sleep(
+                                    random.uniform(1, 3)
+                                )
             except Exception as e:
                 logger.exception(e)
 
     async def get_list(self, user_id, bot_id):
-        if bot_id not in self.user_map or user_id not in self.user_map[bot_id]:
+        if (
+            bot_id not in self.user_map
+            or user_id not in self.user_map[bot_id]
+        ):
             if bot_id not in self.user_map:
                 self.user_map[bot_id] = {}
             self.user_map[bot_id][user_id] = []
@@ -269,10 +304,12 @@ class ToDoModel:
             date = notice.end_date.strftime("%m-%d")
             time = notice.end_date.strftime("%H:%M")
             days, hours, minutes = notice.time_left
-            ddl = f'{days}d{hours}h{minutes}m'
+            ddl = f"{days}d{hours}h{minutes}m"
             if date not in list_by_date:
                 list_by_date[date] = []
-            list_by_date[date].append((time, ddl, notice.name, notice.percentage))
+            list_by_date[date].append(
+                (time, ddl, notice.name, notice.percentage)
+            )
 
         sorted_dates = sorted(list_by_date)
         render_list = []
@@ -299,11 +336,14 @@ class ToDoModel:
                 },
                 browser=browser,
                 pages={
-                    "viewport": {"width": int(img_width), "height": int(img_height)},
+                    "viewport": {
+                        "width": int(img_width),
+                        "height": int(img_height),
+                    },
                     "base_url": f"file://{template_path}",
                 },
             )
             return img
         except Exception as e:
-            logger.error(f'render notice error {str(e)}')
+            logger.error(f"render notice error {str(e)}")
             return None

@@ -2,17 +2,16 @@ import copy
 
 from yacs.config import CfgNode
 
-from .build import IMAGE
-from .build import IMAGEENGINE
+from .build import IMAGE, IMAGEENGINE
 
 
 @IMAGEENGINE.register_module()
 class ImageEngine:
     def __init__(self, config: CfgNode = None):
         self.name_map = {
-            'filckr': 'FilckrImg',
-            'websearch': 'WebSearchImg',
-            'bingai': 'BingImg',
+            "filckr": "FilckrImg",
+            "websearch": "WebSearchImg",
+            "bingai": "BingImg",
         }
         self.bots = {}
         self.current_engine = self.name_map[config.default]

@@ -1,14 +1,16 @@
 import httpx
-
-from gsuid_core.bot import Bot
-from gsuid_core.logger import logger
-from gsuid_core.models import Event
-from gsuid_core.segment import MessageSegment
 from gsuid_core.sv import SV
-from .config import config
-from .others import OTHER
+from gsuid_core.bot import Bot
+from gsuid_core.models import Event
+from gsuid_core.logger import logger
+from gsuid_core.segment import MessageSegment
 
-other_sv = SV("其他相关", pm=6, priority=1400, enabled=True, black_list=[], area="ALL")
+from .others import OTHER
+from .config import config
+
+other_sv = SV(
+    "其他相关", pm=6, priority=1400, enabled=True, black_list=[], area="ALL"
+)
 
 browser = OTHER.build(config.other.browser)
 setereo = OTHER.build(config.other.setereo)
@@ -16,7 +18,7 @@ song = OTHER.build(config.other.song)
 
 
 @other_sv.on_regex(
-    '[a-zA-z]+://[^\s]*',
+    r"[a-zA-z]+://[^\s]*",
     block=True,
 )
 async def screenshot_handle(bot: Bot, event: Event):
@@ -41,7 +43,7 @@ async def setereo_handle(bot: Bot, event: Event):
     ("点歌"),
     block=True,
 )
-async def setereo_handle(bot: Bot, event: Event):
+async def song_handle(bot: Bot, event: Event):
     text = event.text.strip()
     if not text:
         return
@@ -52,7 +54,9 @@ async def setereo_handle(bot: Bot, event: Event):
         album = res["album"]
         # img_url = res["img_url"]
         song_url = res["song_url"]
-        await bot.send(f"即将为您播放歌曲 [{name}]\n\n专辑: {album}\n歌手: {artist}\n\n正在下载中，请稍后")
+        await bot.send(
+            f"即将为您播放歌曲 [{name}]\n\n专辑: {album}\n歌手: {artist}\n\n正在下载中，请稍后"
+        )
         try:
             # if img_url:
             #     async with httpx.AsyncClient() as client:
@@ -63,7 +67,8 @@ async def setereo_handle(bot: Bot, event: Event):
                 response = await client.get(song_url)
                 await bot.send(
                     MessageSegment.file(
-                        content=response.content, file_name=f"{name}.mp3"
+                        content=response.content,
+                        file_name=f"{name}.mp3",
                     )
                 )
         except Exception as e:

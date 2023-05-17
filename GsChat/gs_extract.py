@@ -1,17 +1,19 @@
 import re
 import uuid
 
-from httpx import AsyncClient
-
-from gsuid_core.bot import Bot
-from gsuid_core.logger import logger
-from gsuid_core.models import Event
 from gsuid_core.sv import SV
-from .config import config
-from .extract import EXTRACT, BiliBiliExtract
-from .utils import send_img, send_file
+from httpx import AsyncClient
+from gsuid_core.bot import Bot
+from gsuid_core.models import Event
+from gsuid_core.logger import logger
 
-extract_sv = SV('提取网页', pm=5, priority=9, enabled=True, black_list=[], area='ALL')
+from .config import config
+from .utils import send_img, send_file
+from .extract import EXTRACT, BiliBiliExtract
+
+extract_sv = SV(
+    "提取网页", pm=5, priority=9, enabled=True, black_list=[], area="ALL"
+)
 
 bili: BiliBiliExtract = EXTRACT.build(config.extract.bilibili)
 
@@ -45,7 +47,7 @@ async def dy(bot: Bot, event: Event) -> None:
     try:
         await general_extract(dou_url, bot)
     except Exception as e:
-        logger.info(f'{type(e)}: {str(e)}')
+        logger.info(f"{type(e)}: {str(e)}")
         await bot.send("抖音解析出错啦")
 
 
@@ -60,7 +62,7 @@ async def tiktok(bot: Bot, event: Event) -> None:
     try:
         await general_extract(dou_url, bot)
     except Exception as e:
-        logger.info(f'{type(e)}: {str(e)}')
+        logger.info(f"{type(e)}: {str(e)}")
         await bot.send("Tiktok解析出错啦")
 
 
@@ -75,26 +77,26 @@ async def xhs(bot: Bot, event: Event) -> None:
     try:
         await general_extract(dou_url, bot)
     except Exception as e:
-        logger.info(f'{type(e)}: {str(e)}')
+        logger.info(f"{type(e)}: {str(e)}")
         await bot.send("小红书解析出错啦")
 
 
 async def general_extract(link, bot):
     async with AsyncClient(timeout=None, verify=False) as client:
         url = "https://www.wouldmissyou.com/api/parse/"
-        payload = {'link_text': link}
+        payload = {"link_text": link}
         resp = await client.post(url, data=payload)
-        data = resp.json()['data']
-        if data['code'] == 0:
-            data = data['data']
-            await bot.send(data['title'])
-            if data['isVideo']:
-                vedio_url = data['videoUrls']
+        data = resp.json()["data"]
+        if data["code"] == 0:
+            data = data["data"]
+            await bot.send(data["title"])
+            if data["isVideo"]:
+                vedio_url = data["videoUrls"]
                 if isinstance(vedio_url, list):
                     vedio_url = vedio_url[0]
-                filename = f'{str(uuid.uuid4())}.mp4'
+                filename = f"{str(uuid.uuid4())}.mp4"
                 await send_file(vedio_url, bot, filename)
             else:
-                pics = data['pics']
+                pics = data["pics"]
                 if pics:
                     await send_img(pics, bot)

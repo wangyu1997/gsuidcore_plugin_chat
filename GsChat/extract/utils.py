@@ -2,7 +2,6 @@ import re
 from urllib.parse import quote
 
 from httpx import AsyncClient
-
 from gsuid_core.logger import logger
 
 b23_pattern = r"(b23.tv)|(bili(22|23|33|2233).cn)"
@@ -21,9 +20,15 @@ dy_id_pattern = r"(t|m).bilibili.com/(\d+)"
 
 bv_url = "https://api.bilibili.com/x/web-interface/view?bvid={param}"
 av_url = "https://api.bilibili.com/x/web-interface/view?aid={param}"
-ep_url = "https://bangumi.bilibili.com/view/web_api/season?ep_id={param}"
-ss_url = "https://bangumi.bilibili.com/view/web_api/season?season_id={param}"
-md_url = "https://bangumi.bilibili.com/view/web_api/season?media_id={param}"
+ep_url = (
+    "https://bangumi.bilibili.com/view/web_api/season?ep_id={param}"
+)
+ss_url = (
+    "https://bangumi.bilibili.com/view/web_api/season?season_id={param}"
+)
+md_url = (
+    "https://bangumi.bilibili.com/view/web_api/season?media_id={param}"
+)
 live_url = "https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id={param}"
 cv_url = "https://api.bilibili.com/x/article/viewinfo?id={param}&mobi_app=pc&from=web"
 dy_type_url = "https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?rid={param}&type=2"
@@ -46,7 +51,7 @@ async def get_b23_redirection(text: str, client: AsyncClient) -> str:
     )
     url = f"https://{b23[0]}"
     resp = await client.get(url)
-    return resp.headers.get('location', url)
+    return resp.headers.get("location", url)
 
 
 async def search_bili_by_title(title: str, client: AsyncClient) -> str:
@@ -76,7 +81,9 @@ def extract_bili_info(text: str):
         mdid = re.compile(md_pattern, re.I).search(text)
         room_id = re.compile(live_pattern, re.I).search(text)
         cv_id = re.compile(cv_pattern, re.I).search(text)
-        dynamic_id_type2 = re.compile(dy_type_pattern, re.I).search(text)
+        dynamic_id_type2 = re.compile(dy_type_pattern, re.I).search(
+            text
+        )
         dynamic_id = re.compile(dy_id_pattern, re.I).search(text)
 
         if bv_id:
@@ -100,5 +107,5 @@ def extract_bili_info(text: str):
             url = dy_id_url.format(param=dynamic_id[2])
         return url, page, time
     except Exception as e:
-        logger.info(f'{type(e)}: bilibili解析失败 - {str(e)}')
+        logger.info(f"{type(e)}: bilibili解析失败 - {str(e)}")
         return "", None, None

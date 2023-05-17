@@ -1,14 +1,19 @@
-import random
 import re
+import random
 
+from gsuid_core.sv import SV
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
-from gsuid_core.sv import SV
-from .chat import BaseChat, CHATENGINE
-from .config import config
 
-chat_sv = SV('聊天', pm=6, priority=10, enabled=True, black_list=[], area='ALL')
-at_sv = SV('at聊天', pm=6, priority=2000, enabled=True, black_list=[], area='ALL')
+from .config import config
+from .chat import CHATENGINE, BaseChat
+
+chat_sv = SV(
+    "聊天", pm=6, priority=10, enabled=True, black_list=[], area="ALL"
+)
+at_sv = SV(
+    "at聊天", pm=6, priority=2000, enabled=True, black_list=[], area="ALL"
+)
 
 # admin 一键切换所有模式 查看模式和engine
 chat_engine = CHATENGINE.build(config.chat)
@@ -68,7 +73,17 @@ async def rand_poke() -> str:
 
 
 @chat_sv.on_prefix(
-    ('bing', 'chat', 'openai', 'Bing', 'Chat', 'Openai', 'poe', 'POE', 'Poe'),
+    (
+        "bing",
+        "chat",
+        "openai",
+        "Bing",
+        "Chat",
+        "Openai",
+        "poe",
+        "POE",
+        "Poe",
+    ),
     block=True,
 )
 async def chat_handle(bot: Bot, event: Event):
@@ -77,71 +92,79 @@ async def chat_handle(bot: Bot, event: Event):
     await handle_msg(bot, event, new_engine_name)
 
 
-@at_sv.on_command('', block=True, to_me=True)
+@at_sv.on_command("", block=True, to_me=True)
 async def at_test(bot: Bot, event: Event):
     await handle_msg(bot, event)
 
 
 @chat_sv.on_prefix(
-    ('切换引擎', 'ce'),
+    ("切换引擎", "ce"),
     block=True,
 )
 async def change_engine(bot: Bot, event: Event):
     bot_name = event.text.strip().lower()
 
-    if bot_name not in ['bing', 'chat', 'openai', 'poe']:
+    if bot_name not in ["bing", "chat", "openai", "poe"]:
         await bot.send(f"暂时不支持引擎 [{bot_name}] ")
 
     new_engine_name = chat_engine.get_engine(bot_name=bot_name)
     _, group, _ = chat_engine.get_bot_info(event)
     chat_engine.change_engine(event, new_engine_name)
 
-    await bot.send(f'已切换当前[{"群聊" if group else "私聊"}] 引擎为: [{new_engine_name}]')
+    await bot.send(
+        f'已切换当前[{"群聊" if group else "私聊"}] 引擎为: [{new_engine_name}]'
+    )
 
 
 @chat_sv.on_fullmatch(
-    ('切换模式', 'cm'),
+    ("切换模式", "cm"),
     block=True,
 )
 async def mode_handle(bot: Bot, event: Event):
     chat_type = event.user_type
-    is_private = bool(chat_type == 'direct')
+    is_private = bool(chat_type == "direct")
 
     # 不支持私聊
     if is_private:
-        await bot.send(f'私人聊天无法切换模式哦, 在群组中使用该命令。')
+        await bot.send("私人聊天无法切换模式哦, 在群组中使用该命令。")
         return
 
     _, _, engine = chat_engine.get_bot_info(event)
     group = chat_engine.change_mode(event.group_id)
     _, _, engine = chat_engine.get_bot_info(event)
 
-    await bot.send(f'切换成功\n当前模式为: [{"群聊" if group else "私人"}模式]\n当前引擎为: [{engine}]')
+    await bot.send(
+        f'切换成功\n当前模式为: [{"群聊" if group else "私人"}模式]\n当前引擎为: [{engine}]'
+    )
 
 
 @chat_sv.on_fullmatch(
-    ('重置对话', 'reset'),
+    ("重置对话", "reset"),
     block=True,
 )
 async def reserve_handle(bot: Bot, event: Event):
     user_id, group, engine_name = chat_engine.get_bot_info(event)
     chatbot: BaseChat = await chat_engine.get_singleton_bot(engine_name)
     if await chatbot.reset(user_id, bot, event):
-        await bot.send(f'已重置当前[{"群聊" if group else "私聊"}] 引擎为: [{engine_name}]')
+        await bot.send(
+            f'已重置当前[{"群聊" if group else "私聊"}] 引擎为: [{engine_name}]'
+        )
 
 
-@chat_sv.on_fullmatch('查看引擎', block=True)
+@chat_sv.on_fullmatch("查看引擎", block=True)
 async def _(bot: Bot, event: Event):
     _, group, engine_name = chat_engine.get_bot_info(event)
-    await bot.send(f'当前[{"群聊" if group else "私聊"}] 引擎为: [{engine_name}]')
+    await bot.send(
+        f'当前[{"群聊" if group else "私聊"}] 引擎为: [{engine_name}]'
+    )
 
 
 async def handle_msg(bot: Bot, event: Event, engine_name: str = None):
     msg = event.text.strip()
 
-    if event.bot_id == 'ntchat':
-        if ' ' not in msg and "@" in msg:
-            msg = ''
+    if event.bot_id == "ntchat":
+        if " " not in msg and "@" in msg:
+            msg = ""
         else:
             msg = re.sub(r"@.*? ", "", msg)
 
@@ -157,13 +180,15 @@ async def handle_msg(bot: Bot, event: Event, engine_name: str = None):
     if not engine_name:
         engine_name = engine
 
-    chat_bot: BaseChat = await chat_engine.get_singleton_bot(engine_name)
+    chat_bot: BaseChat = await chat_engine.get_singleton_bot(
+        engine_name
+    )
 
     await chat_bot.ask(user_id, bot, event)
 
 
 @chat_sv.on_fullmatch(
-    '风格',
+    "风格",
     block=True,
 )
 async def hint_style(bot: Bot, event: Event):
@@ -172,78 +197,85 @@ async def hint_style(bot: Bot, event: Event):
 
 async def show_style(bot: Bot, event: Event):
     user_id, _, engine_name = chat_engine.get_bot_info(event)
-    if engine_name == 'Bing':
+    if engine_name == "Bing":
         await bot.send(
-            f'您当前的引擎为[{engine_name}]\n'
-            f'请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n'
-            f'1. 创造型\n2. 平衡型\n3. 精准型'
+            f"您当前的引擎为[{engine_name}]\n"
+            f"请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n"
+            f"1. 创造型\n2. 平衡型\n3. 精准型"
         )
-    elif engine_name == 'Poe':
+    elif engine_name == "Poe":
         await bot.send(
-            f'您当前的引擎为[{engine_name}]\n'
-            f'请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n'
-            f'1. Sage\n2. Claude\n3. ChatGPT\n4.NeevaAI\n5. Dragonfly\n6. 私人会话'
+            f"您当前的引擎为[{engine_name}]\n"
+            f"请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n"
+            f"1. Sage\n2. Claude\n3. ChatGPT\n4. NeevaAI\n5. Dragonfly\n6. 私人会话"
         )
-    elif engine_name == 'Normal':
+    elif engine_name == "Normal":
         await bot.send(
-            f'您当前的引擎为[{engine_name}]\n'
-            f'请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n'
-            f'1. 正常风格\n2. 预设风格(默认为猫娘风格)'
+            f"您当前的引擎为[{engine_name}]\n"
+            f"请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n"
+            f"1. 正常风格\n2. 预设风格(默认为猫娘风格)"
         )
     else:
-        await bot.send(f'您当前的引擎为[{engine_name}\n暂不支持切换风格')
+        await bot.send(f"您当前的引擎为[{engine_name}\n暂不支持切换风格")
 
 
 @chat_sv.on_prefix(
-    '切换风格',
+    "切换风格",
     block=True,
 )
 async def handle_style(bot: Bot, event: Event):
     try:
         num = int(event.text.strip())
-    except Exception as e:
+    except Exception:
         await show_style(bot, event)
-        await bot.send('输入有误，请重新输入正确序号')
+        await bot.send("输入有误，请重新输入正确序号")
         return
 
     user_id, _, engine_name = chat_engine.get_bot_info(event)
-    if engine_name == 'Bing':
-        style_map = {'creative': '创造型', 'balanced': '平衡型', 'precise': '精准型'}
-        chatbot = await chat_engine.get_singleton_bot('Bing')
-        if num not in [1, 2, 3]:
-            await bot.send('输入有误，请重新输入正确序号:\n' f'1. 创造型\n2. 平衡型\n3. 精准型')
-            return
-    elif engine_name == 'Poe':
+    if engine_name == "Bing":
         style_map = {
-            'capybara': 'Sage',
-            'a2': 'Claude',
-            'chinchilla': 'ChatGPT',
-            'hutia': 'NeevaAI',
-            'nutria': 'Dragonfly',
-            'custom': '私人会话',
+            "creative": "创造型",
+            "balanced": "平衡型",
+            "precise": "精准型",
         }
-        chatbot = await chat_engine.get_singleton_bot('Poe')
+        chatbot = await chat_engine.get_singleton_bot("Bing")
+        if num not in [1, 2, 3]:
+            await bot.send("输入有误，请重新输入正确序号:\n1. 创造型\n2. 平衡型\n3. 精准型")
+            return
+    elif engine_name == "Poe":
+        style_map = {
+            "capybara": "Sage",
+            "a2": "Claude",
+            "chinchilla": "ChatGPT",
+            "hutia": "NeevaAI",
+            "nutria": "Dragonfly",
+            "custom": "私人会话",
+        }
+        chatbot = await chat_engine.get_singleton_bot("Poe")
         if num not in [1, 2, 3, 4, 5, 6]:
             await bot.send(
-                '输入有误，请重新输入正确序号:\n'
-                f'1. Sage\n2. Claude\n3. ChatGPT\n4.NeevaAI\n5. Dragonfly\n6. 私人会话'
+                "输入有误，请重新输入正确序号:\n1. Sage\n2. Claude\n3. ChatGPT\n4. NeevaAI\n5. Dragonfly\n6. 私人会话"
             )
             return
-    elif engine_name == 'Normal':
-        style_map = {False: '正常风格', True: '预设风格'}
-        chatbot = await chat_engine.get_singleton_bot('Normal')
+    elif engine_name == "Normal":
+        style_map = {False: "正常风格", True: "预设风格"}
+        chatbot = await chat_engine.get_singleton_bot("Normal")
         if num not in [1, 2]:
-            await bot.send('输入有误，请重新输入正确序号:\n' f'1. 正常风格\n2. 预设风格(默认为猫娘风格)')
+            await bot.send("输入有误，请重新输入正确序号:\n1. 正常风格\n2. 预设风格(默认为猫娘风格)")
             return
     else:
-        await bot.send(f'您当前的引擎为[{engine_name}\n暂不支持切换风格')
+        await bot.send(f"您当前的引擎为[{engine_name}\n暂不支持切换风格")
         return
     style = list(style_map.keys())[num - 1]
     try:
-        status, msg = await chatbot.switch_style(user_id, style, bot, event)
+        status, msg = await chatbot.switch_style(
+            user_id, style, bot, event
+        )
         if not status:
             await bot.send(msg)
         else:
-            await bot.send(f'切换成功，已为您创建新的会话\n当前{engine_name}的风格为 [{style_map[msg]}]')
+            await bot.send(
+                f"切换成功，已为您创建新的会话\n当前{engine_name}的风格为 [{style_map[msg]}]"
+            )
     except Exception as e:
-        await bot.send(f'切换失败：{str(e)}')
+        await bot.send(f"切换失败：{str(e)}")

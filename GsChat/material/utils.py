@@ -1,32 +1,26 @@
-import asyncio
 import json
-from copy import deepcopy
-from datetime import datetime, timedelta
+import asyncio
+from math import ceil
+from time import time
 from io import BytesIO
 from pathlib import Path
-from re import findall
-from re import match
-from time import time
-from typing import Dict, List, Union
-from typing import Tuple, Literal, Optional
+from copy import deepcopy
+from re import match, findall
+from datetime import datetime, timedelta
+from typing import Dict, List, Tuple, Union, Literal, Optional
 
-from PIL import Image, ImageDraw, ImageFont
-from httpx import HTTPError, AsyncClient
-from math import ceil
-
-from gsuid_core.data_store import get_res_path
 from gsuid_core.logger import logger
+from httpx import HTTPError, AsyncClient
+from PIL import Image, ImageDraw, ImageFont
+from gsuid_core.data_store import get_res_path
 from gsuid_core.utils.api.mys_api import mys_api
 from gsuid_core.utils.database.api import DBSqla
-from .config import (
-    AMBR,
-    WEEKLY_BOSS,
-)
-from .config import MYS_API
 
-CONFIG_DIR = get_res_path('GsChat') / 'materials'
+from .config import AMBR, MYS_API, WEEKLY_BOSS
+
+CONFIG_DIR = get_res_path("GsChat") / "materials"
 GSUID_DIR = get_res_path("GenshinUID")
-DL_MIRROR = 'https://api.ambr.top/assets/UI/'
+DL_MIRROR = "https://api.ambr.top/assets/UI/"
 SKIP_THREE = True
 _WEEKLY_BOSS = WEEKLY_BOSS  # [:-1]
 ITEM_ALIAS = {}
@@ -43,8 +37,10 @@ async def _get_uid(user_id: str, bot_id: str):
     return uid
 
 
-async def _mys_request(url: str, method: str, uid: str, data: Dict) -> Dict:
-    ck = await mys_api.get_ck(uid, 'RANDOM')
+async def _mys_request(
+    url: str, method: str, uid: str, data: Dict
+) -> Dict:
+    ck = await mys_api.get_ck(uid, "RANDOM")
     HEADER = {
         "host": "api-takumi.mihoyo.com",
         "origin": "https://webstatic.mihoyo.com",
@@ -59,27 +55,27 @@ async def _mys_request(url: str, method: str, uid: str, data: Dict) -> Dict:
         ),
         "x-requested-with": "com.mihoyo.hyperion",
     }
-    HEADER['Cookie'] = ck
+    HEADER["Cookie"] = ck
 
     data = await mys_api._mys_request(
         url=url,
         method=method,
         header=HEADER,
-        params=data if method == 'GET' else None,
-        data=data if method == 'POST' else None,
+        params=data if method == "GET" else None,
+        data=data if method == "POST" else None,
     )
-    return data['data'], data['retcode'] == 0
+    return data["data"], data["retcode"] == 0
 
 
 async def request_cal(uid: str, data: Dict):
-    request_url = MYS_API['计算']
-    result, success = await _mys_request(request_url, 'POST', uid, data)
+    request_url = MYS_API["计算"]
+    result, success = await _mys_request(request_url, "POST", uid, data)
     return result, success
 
 
 async def request_skill(uid: str, data: Dict):
-    request_url = MYS_API['技能']
-    result, success = await _mys_request(request_url, 'GET', uid, data)
+    request_url = MYS_API["技能"]
+    result, success = await _mys_request(request_url, "GET", uid, data)
     return result, success
 
 
@@ -113,7 +109,8 @@ async def sub_helper(
 
     # 更新写入
     cfg_file.write_text(
-        json.dumps(sub_cfg, ensure_ascii=False, indent=2), encoding="UTF-8"
+        json.dumps(sub_cfg, ensure_ascii=False, indent=2),
+        encoding="UTF-8",
     )
     return f"已{'启用' if mode[0] == 'a' else '禁用'}当前{write_key}的原神每日材料订阅。"
 
@@ -146,9 +143,13 @@ async def generate_daily_msg(
         return cache_pic
 
     # 根据每日材料配置重新生成图片
-    config = json.loads((CONFIG_DIR / "config.json").read_text(encoding="UTF-8"))
+    config = json.loads(
+        (CONFIG_DIR / "config.json").read_text(encoding="UTF-8")
+    )
     need_types = (
-        [material] if material in ["avatar", "weapon"] else ["avatar", "weapon"]
+        [material]
+        if material in ["avatar", "weapon"]
+        else ["avatar", "weapon"]
     )
     # 按需绘制素材图片
     try:
@@ -169,8 +170,12 @@ async def generate_weekly_msg(boss: str) -> Union[Path, str]:
         return cache_pic
 
     # 根据每日材料配置重新生成图片
-    config = json.loads((CONFIG_DIR / "config.json").read_text(encoding="UTF-8"))
-    need_types = [boss] if boss != "all" else [b[0] for b in _WEEKLY_BOSS]
+    config = json.loads(
+        (CONFIG_DIR / "config.json").read_text(encoding="UTF-8")
+    )
+    need_types = (
+        [boss] if boss != "all" else [b[0] for b in _WEEKLY_BOSS]
+    )
     if not config["weekly"].get("？？？") and boss == "？？？":
         return "当前暂无未上线的周本"
     elif config["weekly"].get("？？？") and boss == "all":
@@ -193,7 +198,9 @@ async def get_target(alias: str) -> Tuple[int, str]:
     return 0, alias
 
 
-async def get_upgrade_target(target_id: int, msg: str, uid: str) -> Dict:
+async def get_upgrade_target(
+    target_id: int, msg: str, uid: str
+) -> Dict:
     """计算器升级范围提取"""
     lvl_regex = r"([0-9]{1,2})([-\s]([0-9]{1,2}))?"
     t_lvl_regex = r"(10|[1-9])(-(10|[1-9]))?"
@@ -225,7 +232,9 @@ async def get_upgrade_target(target_id: int, msg: str, uid: str) -> Dict:
     # 角色升级识别
     # 角色等级，支持 90、70-90、70 90 三种格式
     level_input = (
-        msg.split("天赋")[0].strip() if "天赋" in msg else msg.split(" ", 1)[0].strip()
+        msg.split("天赋")[0].strip()
+        if "天赋" in msg
+        else msg.split(" ", 1)[0].strip()
     )
     level_targets = findall(lvl_regex, level_input)
     if not level_targets:
@@ -236,7 +245,9 @@ async def get_upgrade_target(target_id: int, msg: str, uid: str) -> Dict:
     else:
         _target = level_targets[0]
         _lvl_from, _lvl_to = (
-            (int(_target[0]), int(_target[-1])) if _target[-1] else (1, int(_target[0]))
+            (int(_target[0]), int(_target[-1]))
+            if _target[-1]
+            else (1, int(_target[0]))
         )
     if _lvl_to > 90:
         return {"error": "伙伴等级超出限制~"}
@@ -260,11 +271,15 @@ async def get_upgrade_target(target_id: int, msg: str, uid: str) -> Dict:
         return {"error": "天赋等级超出限制~"}
 
     # 获取角色技能数据
-    skill_list, success = await request_skill(uid, {"avatar_id": target_id})
+    skill_list, success = await request_skill(
+        uid, {"avatar_id": target_id}
+    )
     if not success:
         return skill_list
     skill_ids = [
-        skill["group_id"] for skill in skill_list["list"] if skill["max_level"] == 10
+        skill["group_id"]
+        for skill in skill_list["list"]
+        if skill["max_level"] == 10
     ]
 
     return {
@@ -284,7 +299,8 @@ async def get_upgrade_target(target_id: int, msg: str, uid: str) -> Dict:
 
 
 async def query_ambr(
-    type: Literal["每日采集", "升级材料", "角色列表", "武器列表", "材料列表"], retry: int = 3
+    type: Literal["每日采集", "升级材料", "角色列表", "武器列表", "材料列表"],
+    retry: int = 3,
 ) -> Dict:
     """安柏计划数据接口请求"""
 
@@ -293,7 +309,11 @@ async def query_ambr(
             try:
                 res = await client.get(AMBR[type], timeout=10.0)
                 return res.json()["data"]
-            except (HTTPError, json.decoder.JSONDecodeError, KeyError) as e:
+            except (
+                HTTPError,
+                json.decoder.JSONDecodeError,
+                KeyError,
+            ) as e:
                 retry -= 1
                 if retry:
                     await asyncio.sleep(2)
@@ -302,7 +322,9 @@ async def query_ambr(
     return {}
 
 
-def _init_picture_dir(env_key: str, config_dir: Path) -> Tuple[str, str, Path]:
+def _init_picture_dir(
+    env_key: str, config_dir: Path
+) -> Tuple[str, str, Path]:
     """根据本地文件决定后续下载文件路径及命名"""
     if "item" in env_key:
         env_value = None
@@ -329,7 +351,9 @@ def _init_picture_dir(env_key: str, config_dir: Path) -> Tuple[str, str, Path]:
     elif env_value.is_dir():
         pic_name, pic_fmt = "name", "png"
         for already_have in env_value.iterdir():
-            pic_name = "id" if str(already_have.name[0]).isdigit() else "name"
+            pic_name = (
+                "id" if str(already_have.name[0]).isdigit() else "name"
+            )
             pic_fmt = already_have.name.split(".")[-1]
             break
         return pic_name, pic_fmt, env_value
@@ -364,7 +388,9 @@ async def download(
     # 跳过下载本地已存在的文件
     if f.exists():
         # 测试角色图像为白色问号，该图片 st_size = 5105，小于 6KB 均视为无效图片
-        if not (f.name.lower().endswith("png") and f.stat().st_size < 6144):
+        if not (
+            f.name.lower().endswith("png") and f.stat().st_size < 6144
+        ):
             return f
 
     # 远程文件下载
@@ -402,7 +428,9 @@ async def download(
                             ),
                         }
                     )
-                    res = await client.get(url, headers=headers, timeout=20.0)
+                    res = await client.get(
+                        url, headers=headers, timeout=20.0
+                    )
                     userImage = Image.open(BytesIO(res.content))
                     userImage.save(f, quality=100)
                 return f
@@ -425,21 +453,33 @@ async def check_files():
     _weapon, _weapon_fmt, _weapon_dir = _init_picture_dir(
         "gsmaterial_weapon", CONFIG_DIR
     )
-    _item, _item_fmt, _item_dir = _init_picture_dir("gsmaterial_item", CONFIG_DIR)
+    _item, _item_fmt, _item_dir = _init_picture_dir(
+        "gsmaterial_item", CONFIG_DIR
+    )
     _avatar_dir.mkdir(parents=True, exist_ok=True)
     _weapon_dir.mkdir(parents=True, exist_ok=True)
     _item_dir.mkdir(parents=True, exist_ok=True)
 
     DL_CFG = {
-        "avatar": {"dir": _avatar_dir, "file": _avatar, "fmt": _avatar_fmt},
-        "weapon": {"dir": _weapon_dir, "file": _weapon, "fmt": _weapon_fmt},
+        "avatar": {
+            "dir": _avatar_dir,
+            "file": _avatar,
+            "fmt": _avatar_fmt,
+        },
+        "weapon": {
+            "dir": _weapon_dir,
+            "file": _weapon,
+            "fmt": _weapon_fmt,
+        },
         "item": {"dir": _item_dir, "file": _item, "fmt": _item_fmt},
     }
 
     # 配置文件初始化
     if not (CONFIG_DIR / "sub.json").exists():
         (CONFIG_DIR / "sub.json").write_text(
-            json.dumps({"群组": {}, "私聊": {}}, ensure_ascii=False, indent=2),
+            json.dumps(
+                {"群组": {}, "私聊": {}}, ensure_ascii=False, indent=2
+            ),
             encoding="UTF-8",
         )
 
@@ -458,7 +498,8 @@ async def update_config(config):
         )
         ITEM_ALIAS = ITEM_ALIAS.json()
         (CONFIG_DIR / "item-alias.json").write_text(
-            json.dumps(ITEM_ALIAS, ensure_ascii=False, indent=2), encoding="utf-8"
+            json.dumps(ITEM_ALIAS, ensure_ascii=False, indent=2),
+            encoding="utf-8",
         )
 
     # 启动资源下载
@@ -485,12 +526,25 @@ async def update_config(config):
     weapon_res = await query_ambr("武器列表")
     material_res = await query_ambr("材料列表")
     if any(
-        not x for x in [domain_res, avatar_res, weapon_res, update_res, material_res]
+        not x
+        for x in [
+            domain_res,
+            avatar_res,
+            weapon_res,
+            update_res,
+            material_res,
+        ]
     ):
         logger.info("安柏计划数据不全！更新任务被跳过")
         return DL_CFG, ITEM_ALIAS
 
-    config = {"avatar": {}, "weapon": {}, "weekly": {}, "skip_3": SKIP_THREE, "time": 0}
+    config = {
+        "avatar": {},
+        "weapon": {},
+        "weekly": {},
+        "skip_3": SKIP_THREE,
+        "time": 0,
+    }
 
     # 生成最新每日材料配置
     logger.debug("每日材料配置更新 & 对应图片下载...")
@@ -498,7 +552,9 @@ async def update_config(config):
         if weekday not in ["monday", "tuesday", "wednesday"]:
             # 跳过材料重复的日期
             continue
-        day_num = {"monday": "1", "tuesday": "2", "wednesday": "3"}[weekday]
+        day_num = {"monday": "1", "tuesday": "2", "wednesday": "3"}[
+            weekday
+        ]
         config["avatar"][day_num], config["weapon"][day_num] = {}, {}
         # 按区域重新排序秘境
         # 约 3.2 版本起，安柏计划上游蒙德武器秘境返回的城市 ID 异常，手动纠正为 1
@@ -506,7 +562,8 @@ async def update_config(config):
             domains,
             key=lambda x: (
                 1
-                if domains[x]["name"] in ["炼武秘境：水光之城", "炼武秘境：深没之谷", "炼武秘境：渴水的废都"]
+                if domains[x]["name"]
+                in ["炼武秘境：水光之城", "炼武秘境：深没之谷", "炼武秘境：渴水的废都"]
                 else domains[x]["city"]
             ),
         )
@@ -522,11 +579,14 @@ async def update_config(config):
                 id_str
                 for id_str in update_res[item_type]
                 if material_id in update_res[item_type][id_str]["items"]
-                   and id_str.isdigit()  # 排除旅行者 "10000005-anemo" 等
+                and id_str.isdigit()  # 排除旅行者 "10000005-anemo" 等
             ]
             # 以 "5琴10000003,5优菈10000051,...,[rank][name][id]" 形式写入配置
-            config[item_type][day_num][f"{material_name}-{material_id}"] = ",".join(
-                f"{trans[i]['rank']}{trans[i]['name']}{i}" for i in use_this
+            config[item_type][day_num][
+                f"{material_name}-{material_id}"
+            ] = ",".join(
+                f"{trans[i]['rank']}{trans[i]['name']}{i}"
+                for i in use_this
             )
             # 下载图片
             domain_tasks = [
@@ -575,15 +635,15 @@ async def update_config(config):
             or material["type"] != "characterLevelUpMaterial"
             or int(material_id)
             in [
-            104104,  # 璀璨原钻
-            104114,  # 燃愿玛瑙
-            104124,  # 涤净青金
-            104134,  # 生长碧翡
-            104144,  # 最胜紫晶
-            104154,  # 自在松石
-            104164,  # 哀叙冰玉
-            104174,  # 坚牢黄玉
-        ]
+                104104,  # 璀璨原钻
+                104114,  # 燃愿玛瑙
+                104124,  # 涤净青金
+                104134,  # 生长碧翡
+                104144,  # 最胜紫晶
+                104154,  # 自在松石
+                104164,  # 哀叙冰玉
+                104174,  # 坚牢黄玉
+            ]
         ):
             # 包含计算器素材，但不在此处下载，后续计算时从米游社下载
             continue
@@ -612,7 +672,9 @@ async def update_config(config):
     config["weekly"] = {
         boss_info[0]: {
             f"{material_res['items'][material_id]['name']}-{material_id}": ""
-            for material_id in weekly_material[boss_idx * 3: boss_idx * 3 + 3]
+            for material_id in weekly_material[
+                boss_idx * 3 : boss_idx * 3 + 3
+            ]
         }
         for boss_idx, boss_info in enumerate(_WEEKLY_BOSS)
     }
@@ -620,7 +682,7 @@ async def update_config(config):
     if len(weekly_material) > len(_WEEKLY_BOSS * 3):
         config["weekly"]["？？？"] = {
             f"{material_res['items'][material_id]['name']}-{material_id}": ""
-            for material_id in weekly_material[len(_WEEKLY_BOSS * 3):]
+            for material_id in weekly_material[len(_WEEKLY_BOSS * 3) :]
         }
 
     # 从升级材料中查找使用某周本材料的角色
@@ -630,17 +692,26 @@ async def update_config(config):
             continue
         # 将角色升级材料按消耗数量重新排序，周本材料 ID 将排在最后一位
         material_id = list(
-            {k: v for k, v in sorted(avatar["items"].items(), key=lambda i: i[1])}
+            {
+                k: v
+                for k, v in sorted(
+                    avatar["items"].items(), key=lambda i: i[1]
+                )
+            }
         )[-1]
         material_name = material_res["items"][material_id]["name"]
         # 确定 config["weekly"] 写入键名，第一层键名为周本 BOSS 名，第二层为 [name]-[id] 材料名
         _boss_idx = weekly_material.index(material_id) // 3
         _boss_name = (
-            _WEEKLY_BOSS[_boss_idx][0] if _boss_idx < len(_WEEKLY_BOSS) else "？？？"
+            _WEEKLY_BOSS[_boss_idx][0]
+            if _boss_idx < len(_WEEKLY_BOSS)
+            else "？？？"
         )
         _material_name = f"{material_res['items'][material_id]['name']}-{material_id}"
         # 以 "5琴10000003,5迪卢克10000016,...,[rank][name][id]" 形式写入配置
-        config["weekly"][_boss_name][_material_name] += "{}{}{}{}".format(
+        config["weekly"][_boss_name][
+            _material_name
+        ] += "{}{}{}{}".format(
             "," if config["weekly"][_boss_name][_material_name] else "",
             avatar_res["items"][avatar_id]["rank"],
             avatar_res["items"][avatar_id]["name"],
@@ -648,11 +719,18 @@ async def update_config(config):
         )
 
     # 判断是否需要更新缓存
-    config_file, redraw_daily, redraw_weekly = CONFIG_DIR / "config.json", True, True
+    config_file, redraw_daily, redraw_weekly = (
+        CONFIG_DIR / "config.json",
+        True,
+        True,
+    )
     if config_file.exists():
-        old_config: Dict = json.loads(config_file.read_text(encoding="UTF-8"))
+        old_config: Dict = json.loads(
+            config_file.read_text(encoding="UTF-8")
+        )
         redraw_daily = any(
-            old_config.get(key) != config[key] for key in ["avatar", "weapon"]
+            old_config.get(key) != config[key]
+            for key in ["avatar", "weapon"]
         )
         redraw_weekly = old_config.get("weekly") != config["weekly"]
         # 跳过三星物品环境变量改变，强制重绘每日材料图片
@@ -662,14 +740,17 @@ async def update_config(config):
     if redraw_daily:
         logger.debug("每日材料图片缓存生成...")
         daily_draw_tasks = [
-            draw_materials(config, ["avatar", "weapon"], day) for day in [1, 2, 3]
+            draw_materials(config, ["avatar", "weapon"], day)
+            for day in [1, 2, 3]
         ]
         await asyncio.gather(*daily_draw_tasks)
         daily_draw_tasks.clear()
     # 更新周本材料图片缓存
     if redraw_weekly:
         logger.debug("周本材料图片缓存生成...")
-        bosses_names = WEEKLY_BOSS if config["weekly"].get("？？？") else _WEEKLY_BOSS
+        bosses_names = (
+            WEEKLY_BOSS if config["weekly"].get("？？？") else _WEEKLY_BOSS
+        )
         bosses_key = [b[0] for b in bosses_names]
         await draw_materials(config, bosses_key)
     # 清理未上线周本过期的图片缓存
@@ -680,7 +761,8 @@ async def update_config(config):
     # 补充时间戳
     config["time"] = int(time())
     config_file.write_text(
-        json.dumps(config, ensure_ascii=False, indent=2), encoding="UTF-8"
+        json.dumps(config, ensure_ascii=False, indent=2),
+        encoding="UTF-8",
     )
     logger.info("原神材料配置更新完成！")
 
@@ -691,11 +773,14 @@ def font(size: int) -> ImageFont.FreeTypeFont:
     """Pillow 绘制字体设置"""
 
     return ImageFont.truetype(
-        str(CONFIG_DIR / "draw" / "SmileySans-Oblique.ttf"), size=size  # HYWH-65W
+        str(CONFIG_DIR / "draw" / "SmileySans-Oblique.ttf"),
+        size=size,  # HYWH-65W
     )
 
 
-async def circle_corner(mark_img: Image.Image, radius: int = 30) -> Image.Image:
+async def circle_corner(
+    mark_img: Image.Image, radius: int = 30
+) -> Image.Image:
     """图片圆角处理"""
 
     mark_img = mark_img.convert("RGBA")
@@ -709,17 +794,23 @@ async def circle_corner(mark_img: Image.Image, radius: int = 30) -> Image.Image:
     draw.ellipse((0, 0, radius * 2, radius * 2), fill=255)
     alpha = Image.new("L", mark_img.size, 255)
     alpha.paste(circle.crop((0, 0, radius, radius)), (0, 0))
-    alpha.paste(circle.crop((radius, 0, radius * 2, radius)), (w - radius, 0))
+    alpha.paste(
+        circle.crop((radius, 0, radius * 2, radius)), (w - radius, 0)
+    )
     alpha.paste(
         circle.crop((radius, radius, radius * 2, radius * 2)),
         (w - radius, h - radius),
     )
-    alpha.paste(circle.crop((0, radius, radius, radius * 2)), (0, h - radius))
+    alpha.paste(
+        circle.crop((0, radius, radius, radius * 2)), (0, h - radius)
+    )
     mark_img.putalpha(alpha)
     return mark_img.resize((int(w / scale), int(h / scale)), RESAMPLING)
 
 
-async def draw_materials(config: Dict, needs: List[str], day: int = 0) -> Path:
+async def draw_materials(
+    config: Dict, needs: List[str], day: int = 0
+) -> Path:
     """原神秘境材料图片绘制"""
 
     cache_dir = CONFIG_DIR / "cache"
@@ -734,7 +825,11 @@ async def draw_materials(config: Dict, needs: List[str], day: int = 0) -> Path:
             need if is_weekly else str(day)
         ]
         draw_config = {  # 剔除 3 星武器
-            key: ",".join(s for s in value.split(",") if not SKIP_THREE or s[0] != "3")
+            key: ",".join(
+                s
+                for s in value.split(",")
+                if not SKIP_THREE or s[0] != "3"
+            )
             for key, value in dict(raw_config).items()
             if value
         }
@@ -743,34 +838,50 @@ async def draw_materials(config: Dict, needs: List[str], day: int = 0) -> Path:
         title = (
             need
             if is_weekly
-            else {1: "周一/周四 {}材料", 2: "周二/周五 {}材料", 3: "周三/周六 {}材料"}[day].format(
-                "天赋培养" if need == "avatar" else "武器突破"
-            )
+            else {1: "周一/周四 {}材料", 2: "周二/周五 {}材料", 3: "周三/周六 {}材料"}[
+                day
+            ].format("天赋培养" if need == "avatar" else "武器突破")
         )
         title_bbox = font(50).getbbox(title)
         total_width = max(
             title_bbox[-2] + 50,
             max(
-                [(font(40).getlength(_key.split("-")[0]) + 150) for _key in draw_config]
+                [
+                    (font(40).getlength(_key.split("-")[0]) + 150)
+                    for _key in draw_config
+                ]
             ),
-            max([len(draw_config[_key].split(",")[:6]) for _key in draw_config])
+            max(
+                [
+                    len(draw_config[_key].split(",")[:6])
+                    for _key in draw_config
+                ]
+            )
             * (170 + 10)
             + 10,
         )
 
         # 计算待绘制图片的高度，每行绘制 6 个角色或武器
         line_cnt = sum(
-            ceil(len(draw_config[_key].split(",")) / 6) for _key in draw_config
+            ceil(len(draw_config[_key].split(",")) / 6)
+            for _key in draw_config
         )
-        total_height = 150 + len(draw_config) * 90 + line_cnt * (160 + 40 + 20)
+        total_height = (
+            150 + len(draw_config) * 90 + line_cnt * (160 + 40 + 20)
+        )
 
         # 开始绘制！
-        img = Image.new("RGBA", (int(total_width), total_height), "#FBFBFB")
+        img = Image.new(
+            "RGBA", (int(total_width), total_height), "#FBFBFB"
+        )
         drawer = ImageDraw.Draw(img)
 
         # 绘制标题
         drawer.text(
-            (int((total_width - title_bbox[-2]) / 2), int((150 - title_bbox[-1]) / 2)),
+            (
+                int((total_width - title_bbox[-2]) / 2),
+                int((150 - title_bbox[-1]) / 2),
+            ),
             title,
             fill="black",
             font=font(50),
@@ -784,7 +895,9 @@ async def draw_materials(config: Dict, needs: List[str], day: int = 0) -> Path:
             # 绘制分组所属材料的图片
             key_name, key_id = key.split("-")
             try:
-                _key_icon = deepcopy(rank_bg["4" if need == "avatar" else "5"])
+                _key_icon = deepcopy(
+                    rank_bg["4" if need == "avatar" else "5"]
+                )
                 _key_icon_path = DL_CFG["item"]["dir"] / "{}.{}".format(
                     key_id
                     if DL_CFG["item"]["file"] == "id"
@@ -797,15 +910,18 @@ async def draw_materials(config: Dict, needs: List[str], day: int = 0) -> Path:
                     (140, 140), RESAMPLING
                 )
                 _key_icon.paste(_key_icon_img, (0, 0), _key_icon_img)
-                _key_icon = (await circle_corner(_key_icon, radius=30)).resize(
-                    (80, 80), RESAMPLING
-                )
+                _key_icon = (
+                    await circle_corner(_key_icon, radius=30)
+                ).resize((80, 80), RESAMPLING)
                 img.paste(_key_icon, (25, startH), _key_icon)
             except:  # noqa: E722
                 pass
             # 绘制分组所属材料的名称
             ImageDraw.Draw(img).text(
-                (125, startH + int((80 - font(40).getbbox("高")[-1]) / 2)),
+                (
+                    125,
+                    startH + int((80 - font(40).getbbox("高")[-1]) / 2),
+                ),
                 key_name,
                 font=font(40),
                 fill="#333",
@@ -815,31 +931,49 @@ async def draw_materials(config: Dict, needs: List[str], day: int = 0) -> Path:
             startH += 90
             draw_X, draw_Y, cnt = 10, startH, 0
             draw_order = sorted(
-                draw_config[key].split(","), key=lambda x: x[0], reverse=True
+                draw_config[key].split(","),
+                key=lambda x: x[0],
+                reverse=True,
             )
             for item in draw_order:
                 if match(r"^[0-9][\u3000-\u9fff]+[0-9]{5,}$", item):
                     # 5雷电将军10000052,5八重神子10000058,...
                     _split = -5 if need == "weapon" else -8
-                    rank, name, this_id = item[0], item[1:_split], item[_split:]
+                    rank, name, this_id = (
+                        item[0],
+                        item[1:_split],
+                        item[_split:],
+                    )
                 else:
                     rank = 0
                     name = this_id = item
                 # 角色/武器图片
                 try:
-                    _dl_cfg_key = "avatar" if need not in ["avatar", "weapon"] else need
+                    _dl_cfg_key = (
+                        "avatar"
+                        if need not in ["avatar", "weapon"]
+                        else need
+                    )
                     _icon = (
                         deepcopy(rank_bg[str(rank)])
                         if rank
                         else Image.new("RGBA", (140, 140), "#818486")
                     )
-                    _icon_path = DL_CFG[_dl_cfg_key]["dir"] / "{}.{}".format(
-                        this_id if DL_CFG[_dl_cfg_key]["file"] == "id" else name,
+                    _icon_path = DL_CFG[_dl_cfg_key][
+                        "dir"
+                    ] / "{}.{}".format(
+                        this_id
+                        if DL_CFG[_dl_cfg_key]["file"] == "id"
+                        else name,
                         DL_CFG[_dl_cfg_key]["fmt"],
                     )
-                    _icon_img = Image.open(_icon_path).resize((140, 140), RESAMPLING)
+                    _icon_img = Image.open(_icon_path).resize(
+                        (140, 140), RESAMPLING
+                    )
                     _icon.paste(_icon_img, (0, 0), _icon_img)
-                    _icon = (await circle_corner(_icon, radius=10)).resize(
+                    _icon = (
+                        await circle_corner(_icon, radius=10)
+                    ).resize(
                         (150, 150), RESAMPLING  # 140
                     )
                     img.paste(_icon, (draw_X + 10, draw_Y + 10), _icon)
@@ -864,14 +998,20 @@ async def draw_materials(config: Dict, needs: List[str], day: int = 0) -> Path:
                     draw_Y += 160 + 40 + 20
 
             # 一组角色/武器绘制完毕
-            startH += (160 + 40 + 20) * ceil(len(draw_config[key].split(",")) / 6)
+            startH += (160 + 40 + 20) * ceil(
+                len(draw_config[key].split(",")) / 6
+            )
 
         # 全部绘制完毕，保存图片
         cache_file = cache_dir / (
-            f"weekly.{need}.jpg" if is_weekly else f"daily.{day}.{need}.jpg"
+            f"weekly.{need}.jpg"
+            if is_weekly
+            else f"daily.{day}.{need}.jpg"
         )
         img.convert("RGB").save(cache_file)
-        logger.debug(f"{'周本' if is_weekly else '每日'}材料图片生成完毕 {cache_file.name}")
+        logger.debug(
+            f"{'周本' if is_weekly else '每日'}材料图片生成完毕 {cache_file.name}"
+        )
         img_and_path.append([img, cache_file])
 
     # 仅有一张图片时直接返回
@@ -879,15 +1019,22 @@ async def draw_materials(config: Dict, needs: List[str], day: int = 0) -> Path:
         return img_and_path[0][1]
 
     # 存在多张图片时横向合并
-    width = sum([i[0].size[0] for i in img_and_path]) + (len(img_and_path) - 1) * 25
+    width = (
+        sum([i[0].size[0] for i in img_and_path])
+        + (len(img_and_path) - 1) * 25
+    )
     _weight, height = 0, max([i[0].size[1] for i in img_and_path])
     merge = Image.new("RGBA", (width, height), "#FBFBFB")
     for i in img_and_path:
         merge.paste(i[0], (_weight, 0), i[0])
         _weight += i[0].size[0] + 25
-    merge_file = cache_dir / ("weekly.all.jpg" if is_weekly else f"daily.{day}.all.jpg")
+    merge_file = cache_dir / (
+        "weekly.all.jpg" if is_weekly else f"daily.{day}.all.jpg"
+    )
     merge.convert("RGB").save(merge_file)
-    logger.info(f"{'周本' if is_weekly else '每日'}材料图片合并完毕 {merge_file.name}")
+    logger.info(
+        f"{'周本' if is_weekly else '每日'}材料图片合并完毕 {merge_file.name}"
+    )
     return merge_file
 
 
@@ -896,7 +1043,12 @@ async def draw_calculator(
 ) -> Union[bytes, str]:
     """原神计算器材料图片绘制"""
     height = (
-        sum(80 + ceil(len(v) / 2) * 70 + 20 for _, v in calculate.items() if v) + 20
+        sum(
+            80 + ceil(len(v) / 2) * 70 + 20
+            for _, v in calculate.items()
+            if v
+        )
+        + 20
     )
     img = Image.new("RGBA", (800, height), "#FEFEFE")
     drawer = ImageDraw.Draw(img)
@@ -941,16 +1093,24 @@ async def draw_calculator(
             raise ValueError("材料计算器无法计算圣遗物消耗")
         # 左侧标题
         drawer.text(
-            (draw_X + 40, int(draw_Y + (80 - font(40).getbbox("高")[-1]) / 2)),
+            (
+                draw_X + 40,
+                int(draw_Y + (80 - font(40).getbbox("高")[-1]) / 2),
+            ),
             title_left,
             fill="#8b7770",
             font=font(40),
         )
         # 右侧标题字体大小自适应
         _size = 40 - len(title_right.split("   ")) * 3
-        _text_width, _text_height = font(_size).getbbox(title_right)[-2:]
+        _text_width, _text_height = font(_size).getbbox(title_right)[
+            -2:
+        ]
         drawer.text(
-            (800 - 70 - _text_width, int(draw_Y + (80 - _text_height) / 2)),
+            (
+                800 - 70 - _text_width,
+                int(draw_Y + (80 - _text_height) / 2),
+            ),
             title_right,
             fill="#8b7770",
             font=font(_size),
@@ -963,17 +1123,22 @@ async def draw_calculator(
             img.paste(icon_bg, (_draw_X, _draw_Y), icon_bg)
             # 图标
             _icon_path = DL_CFG["item"]["dir"] / "{}.{}".format(
-                cost["id"] if DL_CFG["item"]["file"] == "id" else cost["name"],
+                cost["id"]
+                if DL_CFG["item"]["file"] == "id"
+                else cost["name"],
                 DL_CFG["item"]["fmt"],
             )
-            _icon_img = Image.open(_icon_path).resize((50, 50), RESAMPLING)
+            _icon_img = Image.open(_icon_path).resize(
+                (50, 50), RESAMPLING
+            )
             img.paste(_icon_img, (_draw_X, _draw_Y), _icon_img)
             # 名称 × 数量
             cost_str = f"{cost['name']} × {cost['num']}"
             drawer.text(
                 (
                     _draw_X + 65,
-                    _draw_Y + int((50 - font(30).getbbox(cost_str)[-1]) / 2),
+                    _draw_Y
+                    + int((50 - font(30).getbbox(cost_str)[-1]) / 2),
                 ),
                 cost_str,
                 fill="#967b68",
@@ -994,5 +1159,5 @@ async def draw_calculator(
 
 
 async def startup(config):
-    logger.info('[资源文件下载] 正在检查与下载缺失的资源文件，可能需要较长时间，请稍等')
+    logger.info("[资源文件下载] 正在检查与下载缺失的资源文件，可能需要较长时间，请稍等")
     return await update_config(config)

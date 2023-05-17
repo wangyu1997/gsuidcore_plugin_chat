@@ -1,11 +1,26 @@
 import copy
+import asyncio
 import threading
+from typing import Dict, Union
 
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
+from gsuid_core.logger import logger
+
 from .build import MATERIAL
-from .utils import *
-from .utils import _get_uid
+from .utils import (
+    WEEKLY_BOSS,
+    startup,
+    _get_uid,
+    download,
+    get_target,
+    sub_helper,
+    request_cal,
+    draw_calculator,
+    generate_daily_msg,
+    get_upgrade_target,
+    generate_weekly_msg,
+)
 
 
 @MATERIAL.register_module()
@@ -16,8 +31,10 @@ class MaterialModel:
         self.UID_HINT = "你还没有绑定过uid哦!\n请使用[绑定uid123456]命令绑定!"
         self.dl_cfg = {}
         self.item_alias = {}
-        threading.Thread(target=lambda: asyncio.run(
-            self.initail_data(config)), daemon=True).start()
+        threading.Thread(
+            target=lambda: asyncio.run(self.initail_data(config)),
+            daemon=True,
+        ).start()
 
     async def get_uid(self, bot: Bot, event: Event):
         user_id = event.user_id
@@ -37,8 +54,20 @@ class MaterialModel:
 
         # 识别周几，也可以是纯数字
         weekday, timedelta = 0, 0
-        week_keys = ["一", "四", "1", "4", "二",
-                     "五", "2", "5", "三", "六", "3", "6"]
+        week_keys = [
+            "一",
+            "四",
+            "1",
+            "4",
+            "二",
+            "五",
+            "2",
+            "5",
+            "三",
+            "六",
+            "3",
+            "6",
+        ]
         for idx, s in enumerate(week_keys):
             if s in arg:
                 weekday = idx // 4 + 1
@@ -47,7 +76,11 @@ class MaterialModel:
         for idx, s in enumerate(["今", "明", "后"]):
             if s in arg:
                 timedelta = idx
-                arg = arg.replace(f"{s}天", "").replace(f"{s}日", "").strip()
+                arg = (
+                    arg.replace(f"{s}天", "")
+                    .replace(f"{s}日", "")
+                    .strip()
+                )
 
         # 处理正常指令
         if any(x in arg for x in ["天赋", "角色"]):
@@ -87,8 +120,10 @@ class MaterialModel:
         text = event.text
         user_id = event.user_id
         is_delete = "删除" in text or "关闭" in text
-        is_group = event.user_type != 'direct'
-        action = f"{'d' if is_delete else 'a'}{'g' if is_group else 'p'}"
+        is_group = event.user_type != "direct"
+        action = (
+            f"{'d' if is_delete else 'a'}{'g' if is_group else 'p'}"
+        )
         action_id = event.group_id if is_group else user_id
 
         return await sub_helper(action, action_id, bot_id)
@@ -100,7 +135,9 @@ class MaterialModel:
         msg = await generate_daily_msg("update")
         return msg, cfg
 
-    async def generate_calc_msg(self, name: str, bot: Bot, event: Event) -> Union[bytes, str]:
+    async def generate_calc_msg(
+        self, name: str, bot: Bot, event: Event
+    ) -> Union[bytes, str]:
         """原神计算器材料图片生成入口"""
         # 提取待升级物品 ID 及真实名称
         target_input = name.split(" ", 1)[0]
@@ -131,7 +168,9 @@ class MaterialModel:
                     )
                     for i in calculate[key]
                 ]
-                logger.info(f"正在下载计算器 {key} 消耗材料的 {len(consume_tasks)} 张图片")
+                logger.info(
+                    f"正在下载计算器 {key} 消耗材料的 {len(consume_tasks)} 张图片"
+                )
                 await asyncio.gather(*consume_tasks)
                 consume_tasks.clear()
 

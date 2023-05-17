@@ -1,14 +1,14 @@
-import asyncio
 import time
+import asyncio
 from functools import partial
 
 from poe import Client
-
 from gsuid_core.bot import Bot
-from gsuid_core.logger import logger
 from gsuid_core.models import Event
-from .base import BaseChat
+from gsuid_core.logger import logger
+
 from .build import CHAT
+from .base import BaseChat
 from ..utils import to_async, map_str_to_unique_string
 
 
@@ -19,15 +19,26 @@ class POEChat(BaseChat):
         self.proxy = None
         self.chatbot = None
         self.model = config.model
-        self.default_bots = ['capybara', 'a2', 'chinchilla', 'hutia', 'nutria']
+        self.default_bots = [
+            "capybara",
+            "a2",
+            "chinchilla",
+            "hutia",
+            "nutria",
+        ]
 
     async def get_new_bot(self, user_id=None):
         api_key = self._get_random_key()
-        chat_bot = await to_async(Client, token=api_key, proxy=self.proxy)
+        chat_bot = await to_async(
+            Client, token=api_key, proxy=self.proxy
+        )
         self.chatbot = chat_bot
         # 在获取新的bot的时候，如果是自定义的bot，则创建
         if user_id and user_id in self.chat_dict:
-            if self.chat_dict[user_id]["model"] not in self.default_bots:
+            if (
+                self.chat_dict[user_id]["model"]
+                not in self.default_bots
+            ):
                 await self.create_user_bot(user_id)
 
     async def _create(self, user_id):
@@ -39,7 +50,9 @@ class POEChat(BaseChat):
             model = self.chat_dict[user_id]["model"]
             # 忽略公告bot的清除
             if model not in self.default_bots:
-                await to_async(self.chatbot.send_chat_break, chatbot=model)
+                await to_async(
+                    self.chatbot.send_chat_break, chatbot=model
+                )
 
         self.chat_dict[user_id] = {
             "last_time": current_time,
@@ -54,7 +67,7 @@ class POEChat(BaseChat):
         chunk = None
         for chunk in chatbot.send_message(model, msg):
             pass
-        return chunk['text']
+        return chunk["text"]
 
     async def _ask(self, user_id, bot: Bot, event: Event):
         msg = event.text.strip()
@@ -66,11 +79,13 @@ class POEChat(BaseChat):
         except Exception as e:
             self.chat_dict[user_id]["isRunning"] = False
             await self.get_new_bot(user_id)
-            await bot.send(f'askError: {str(e)}多次askError 对话已自动重置"', at_sender=True)
+            await bot.send(
+                f'askError: {str(e)}多次askError 对话已自动重置"', at_sender=True
+            )
             return
         self.chat_dict[user_id]["isRunning"] = False  # 将当前会话状态设置为未运行
         sessions_number = self.chat_dict[user_id]["sessions_number"]
-        data += f"\n\n当前会话: {sessions_number}   字数异常请发送\"重置对话\""
+        data += f'\n\n当前会话: {sessions_number}   字数异常请发送"重置对话"'
 
         return data
 
@@ -95,19 +110,19 @@ class POEChat(BaseChat):
                 res = await self.create(user_id, bot, event)
                 if res:
                     if self.config.show_create:
-                        await bot.send(f'{self.config.name} 对话已创建')
+                        await bot.send(f"{self.config.name} 对话已创建")
                 else:
                     return
-            if style == 'custom':
+            if style == "custom":
                 bot_id = await self.create_user_bot(user_id)
-                style = 'a2'
-                self.chat_dict[user_id]['model'] = bot_id
+                style = "a2"
+                self.chat_dict[user_id]["model"] = bot_id
             else:
-                self.chat_dict[user_id]['model'] = style
+                self.chat_dict[user_id]["model"] = style
             return True, style
         except Exception as e:
             await self.get_new_bot(user_id)
-            return False, f'创建Poe对话失败, {str(e)}'
+            return False, f"创建Poe对话失败, {str(e)}"
 
     async def create_user_bot(self, user_id):
         bot_id = str(user_id)
@@ -117,7 +132,7 @@ class POEChat(BaseChat):
             await to_async(
                 self.chatbot.create_bot,
                 handle=bot_id,
-                prompt='',
-                base_model='a2',
+                prompt="",
+                base_model="a2",
             )
         return bot_id

@@ -1,14 +1,14 @@
-import json
 import re
+import json
 import time
 
+from gsuid_core.bot import Bot
+from gsuid_core.models import Event
+from gsuid_core.logger import logger
 from EdgeGPT import Chatbot as bingChatbot
 
-from gsuid_core.bot import Bot
-from gsuid_core.logger import logger
-from gsuid_core.models import Event
-from .base import BaseChat
 from .build import CHAT
+from .base import BaseChat
 
 
 @CHAT.register_module()
@@ -34,37 +34,52 @@ class BingChat(BaseChat):
         style: str = self.chat_dict[user_id]["model"]
 
         try:
-            data = await chatbot.ask(prompt=msg, conversation_style=style)
+            data = await chatbot.ask(
+                prompt=msg, conversation_style=style
+            )
         except Exception as e:
             self.chat_dict[user_id]["isRunning"] = False
-            await bot.send(f'askError: {str(e)}多次askError请尝试"重置对话"', at_sender=True)
+            await bot.send(
+                f'askError: {str(e)}多次askError请尝试"重置对话"', at_sender=True
+            )
             return
 
         self.chat_dict[user_id]["isRunning"] = False
         if data["item"]["result"]["value"] != "Success":
             await bot.send(
-                "返回Error: " + data["item"]["result"]["value"] + "请重试", at_sender=True
+                "返回Error: " + data["item"]["result"]["value"] + "请重试",
+                at_sender=True,
             )
             del self.chat_dict[user_id]
             return
 
         throttling = data["item"]["throttling"]
-        max_conversation = throttling["maxNumUserMessagesInConversation"]
-        current_conversation = throttling["numUserMessagesInConversation"]
+        max_conversation = throttling[
+            "maxNumUserMessagesInConversation"
+        ]
+        current_conversation = throttling[
+            "numUserMessagesInConversation"
+        ]
         if len(data["item"]["messages"]) < 2:
-            await bot.send("该对话已中断, 可能是被bing掐了, 正帮你重新创建会话", at_sender=True)
+            await bot.send(
+                "该对话已中断, 可能是被bing掐了, 正帮你重新创建会话", at_sender=True
+            )
             await self.create(user_id, bot, event)
             return
 
         if "text" not in data["item"]["messages"][1]:
             await bot.send(
-                data["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"],
+                data["item"]["messages"][1]["adaptiveCards"][0]["body"][
+                    0
+                ]["text"],
                 at_sender=True,
             )
             return
 
         rep_message = await self.bing_string_handle(
-            data["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"]
+            data["item"]["messages"][1]["adaptiveCards"][0]["body"][0][
+                "text"
+            ]
         )
 
         if max_conversation <= current_conversation:
@@ -77,7 +92,7 @@ class BingChat(BaseChat):
         return message
 
     async def init_data(self):
-        cookie_path = self.res_path / 'bing_cookies'
+        cookie_path = self.res_path / "bing_cookies"
         cookie_path.mkdir(parents=True, exist_ok=True)
         cookies_files: list = [
             file
@@ -87,9 +102,12 @@ class BingChat(BaseChat):
 
         try:
             self.cookies = [
-                json.load(open(file, "r", encoding="utf-8")) for file in cookies_files
+                json.load(open(file, "r", encoding="utf-8"))
+                for file in cookies_files
             ]
-            logger.info(f"bing_cookies读取, 初始化成功, 共{len(self.cookies)}个cookies")
+            logger.info(
+                f"bing_cookies读取, 初始化成功, 共{len(self.cookies)}个cookies"
+            )
         except Exception as e:
             logger.info(f"读取bing cookies失败 error信息: {str(e)}")
 
@@ -101,7 +119,8 @@ class BingChat(BaseChat):
         if not matches:
             return input_string
         positions = [
-            (match.start(), match.end()) for match in re.finditer(regex, input_string)
+            (match.start(), match.end())
+            for match in re.finditer(regex, input_string)
         ]
         end = input_string.find("\n", positions[-1][1])
         target = input_string[end:] + "\n\n" + input_string[:end]
@@ -120,8 +139,8 @@ class BingChat(BaseChat):
             res = await self.create(user_id, bot, event)
             if res:
                 if self.config.show_create:
-                    await bot.send(f'{self.config.name} 对话已创建')
+                    await bot.send(f"{self.config.name} 对话已创建")
             else:
                 return False, f"创建{self.config.name}对话失败"
-        self.chat_dict[user_id]['model'] = style
+        self.chat_dict[user_id]["model"] = style
         return True, style

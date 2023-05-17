@@ -1,13 +1,23 @@
+import re
 import copy
 import json
-from time import localtime, strftime
 from typing import Dict, Optional
+from time import strftime, localtime
 
+from httpx import AsyncClient
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
+from gsuid_core.logger import logger
+
 from .build import EXTRACT
-from .utils import *
 from ..utils import send_img
+from .utils import (
+    handle_num,
+    b23_pattern,
+    extract_bili_info,
+    get_b23_redirection,
+    search_bili_by_title,
+)
 
 
 @EXTRACT.register_module()
@@ -16,7 +26,9 @@ class BiliBiliExtract:
         self.config = copy.deepcopy(config)
         self.analysis_stat: Dict[int, str] = {}
         self.analysis_display_image = self.config.display_image
-        self.analysis_display_image_list = self.config.display_image_list
+        self.analysis_display_image_list = (
+            self.config.display_image_list
+        )
 
     async def handle_url(self, bot: Bot, event: Event):
         text = str(event.raw_text).strip()
@@ -26,8 +38,14 @@ class BiliBiliExtract:
                     # 提前处理短链接，避免解析到其他的
                     text = await get_b23_redirection(text, client)
 
-                group_id = event.group_id if event.user_type != 'direct' else None
-                msg, url = await self.bili_keyword(group_id, text, client)
+                group_id = (
+                    event.group_id
+                    if event.user_type != "direct"
+                    else None
+                )
+                msg, url = await self.bili_keyword(
+                    group_id, text, client
+                )
                 if msg:
                     if isinstance(msg, str):
                         # 说明是错误信息
@@ -45,29 +63,42 @@ class BiliBiliExtract:
         except Exception as e:
             logger.info(f"{type(e)}: {str(e)}")
 
-    async def bili_keyword(self, group_id: Optional[int], text: str, client: AsyncClient):
+    async def bili_keyword(
+        self, group_id: Optional[int], text: str, client: AsyncClient
+    ):
         try:
             # 提取url
             url, page, time_location = extract_bili_info(text)
             # 如果是小程序就去搜索标题
             if not url:
                 if title := re.search(r'"desc":("[^"哔哩]+")', text):
-                    video_url = await search_bili_by_title(title[1], client)
+                    video_url = await search_bili_by_title(
+                        title[1], client
+                    )
                     if video_url:
-                        url, page, time_location = extract_bili_info(video_url)
+                        url, page, time_location = extract_bili_info(
+                            video_url
+                        )
 
             # 获取视频详细信息
             msg, video_url = "", ""
             if "view?" in url:
                 msg, video_url = await self.video_detail(
-                    url, page=page, time_location=time_location, client=client
+                    url,
+                    page=page,
+                    time_location=time_location,
+                    client=client,
                 )
             elif "bangumi" in url:
-                msg, video_url = await self.bangumi_detail(url, time_location, client)
+                msg, video_url = await self.bangumi_detail(
+                    url, time_location, client
+                )
             elif "xlive" in url:
                 msg, video_url = await self.live_detail(url, client)
             elif "article" in url:
-                msg, video_url = await self.article_detail(url, page, client)
+                msg, video_url = await self.article_detail(
+                    url, page, client
+                )
             elif "dynamic" in url:
                 msg, video_url = await self.dynamic_detail(url, client)
 
@@ -85,7 +116,9 @@ class BiliBiliExtract:
             video_url = None
         return msg, video_url
 
-    async def video_detail(self, url: str, client: AsyncClient, **kwargs):
+    async def video_detail(
+        self, url: str, client: AsyncClient, **kwargs
+    ):
         try:
             resp = await client.get(url)
             res = resp.json().get("data")
@@ -96,7 +129,7 @@ class BiliBiliExtract:
             cover = (
                 res["pic"]
                 if self.analysis_display_image
-                   or "video" in self.analysis_display_image_list
+                or "video" in self.analysis_display_image_list
                 else ""
             )
             if page := kwargs.get("page"):
@@ -108,12 +141,16 @@ class BiliBiliExtract:
                     if part != res["title"]:
                         title += f"小标题：{part}\n"
             if time_location := kwargs.get("time_location"):
-                time_location = time_location[0].replace("&amp;", "&")[3:]
+                time_location = time_location[0].replace("&amp;", "&")[
+                    3:
+                ]
                 if page:
                     video_url += f"&t={time_location}"
                 else:
                     video_url += f"?t={time_location}"
-            pubdate = strftime("%Y-%m-%d %H:%M:%S", localtime(res["pubdate"]))
+            pubdate = strftime(
+                "%Y-%m-%d %H:%M:%S", localtime(res["pubdate"])
+            )
             tname = f"类型：{res['tname']} | UP：{res['owner']['name']} | 日期：{pubdate}\n"
             stat = f"播放：{handle_num(res['stat']['view'])} | 弹幕：{handle_num(res['stat']['danmaku'])} | 收藏：{handle_num(res['stat']['favorite'])}\n"
             stat += f"点赞：{handle_num(res['stat']['like'])} | 硬币：{handle_num(res['stat']['coin'])} | 评论：{handle_num(res['stat']['reply'])}\n"
@@ -122,14 +159,23 @@ class BiliBiliExtract:
             desc = "".join(i + "\n" for i in desc_list if i)
             desc_list = desc.split("\n")
             if len(desc_list) > 4:
-                desc = desc_list[0] + "\n" + desc_list[1] + "\n" + desc_list[2] + "……"
+                desc = (
+                    desc_list[0]
+                    + "\n"
+                    + desc_list[1]
+                    + "\n"
+                    + desc_list[2]
+                    + "……"
+                )
             msg = [cover, title, tname, stat, desc, video_url]
             return msg, video_url
         except Exception as e:
             msg = "视频解析出错--Error: {}".format(type(e))
             return msg, None
 
-    async def bangumi_detail(self, url: str, time_location: str, client: AsyncClient):
+    async def bangumi_detail(
+        self, url: str, time_location: str, client: AsyncClient
+    ):
         try:
             resp = await client.get(url)
             res = resp.json().get("result")
@@ -138,7 +184,7 @@ class BiliBiliExtract:
             cover = (
                 res["cover"]
                 if self.analysis_display_image
-                   or "bangumi" in self.analysis_display_image_list
+                or "bangumi" in self.analysis_display_image_list
                 else ""
             )
             title = f"番剧：{res['title']}\n"
@@ -152,16 +198,30 @@ class BiliBiliExtract:
             elif "media_id" in url:
                 video_url = f"https://www.bilibili.com/bangumi/media/md{res['media_id']}"
             else:
-                epid = re.compile(r"ep_id=\d+").search(url)[0][len("ep_id="):]
+                epid = re.compile(r"ep_id=\d+").search(url)[0][
+                    len("ep_id=") :
+                ]
                 for i in res["episodes"]:
                     if str(i["ep_id"]) == epid:
                         index_title = f"标题：{i['index_title']}\n"
                         break
-                video_url = f"https://www.bilibili.com/bangumi/play/ep{epid}"
+                video_url = (
+                    f"https://www.bilibili.com/bangumi/play/ep{epid}"
+                )
             if time_location:
-                time_location = time_location[0].replace("&amp;", "&")[3:]
+                time_location = time_location[0].replace("&amp;", "&")[
+                    3:
+                ]
                 video_url += f"?t={time_location}"
-            msg = [cover, title, index_title, desc, style, evaluate, f"{video_url}\n"]
+            msg = [
+                cover,
+                title,
+                index_title,
+                desc,
+                style,
+                evaluate,
+                f"{video_url}\n",
+            ]
             return msg, video_url
         except Exception as e:
             msg = "番剧解析出错--Error: {}".format(type(e))
@@ -181,7 +241,7 @@ class BiliBiliExtract:
             cover = (
                 res["room_info"]["cover"]
                 if self.analysis_display_image
-                   or "live" in self.analysis_display_image_list
+                or "live" in self.analysis_display_image_list
                 else ""
             )
             live_status = res["room_info"]["live_status"]
@@ -194,7 +254,9 @@ class BiliBiliExtract:
             video_url = f"https://live.bilibili.com/{room_id}\n"
             if lock_status:
                 lock_time = res["room_info"]["lock_time"]
-                lock_time = strftime("%Y-%m-%d %H:%M:%S", localtime(lock_time))
+                lock_time = strftime(
+                    "%Y-%m-%d %H:%M:%S", localtime(lock_time)
+                )
                 title = f"[已封禁]直播间封禁至：{lock_time}\n"
             elif live_status == 1:
                 title = f"[直播中]标题：{title}\n"
@@ -227,7 +289,7 @@ class BiliBiliExtract:
             images = (
                 res["origin_image_urls"]
                 if self.analysis_display_image
-                   or "article" in self.analysis_display_image_list
+                or "article" in self.analysis_display_image_list
                 else []
             )
             video_url = f"https://www.bilibili.com/read/cv{cv_id}"
@@ -239,7 +301,16 @@ class BiliBiliExtract:
             share = f"分享数：{handle_num(res['stats']['share'])} "
             like = f"点赞数：{handle_num(res['stats']['like'])} "
             dislike = f"不喜欢数：{handle_num(res['stats']['dislike'])}"
-            desc = view + favorite + coin + "\n" + share + like + dislike + "\n"
+            desc = (
+                view
+                + favorite
+                + coin
+                + "\n"
+                + share
+                + like
+                + dislike
+                + "\n"
+            )
             msg = [images, title, up, desc, video_url]
             return msg, video_url
         except Exception as e:
@@ -264,7 +335,8 @@ class BiliBiliExtract:
                 content = content[:250] + "......"
             images = (
                 [i.get("img_src") for i in item.get("pictures", [])]
-                if self.analysis_display_image or "dynamic" in self.analysis_display_image_list
+                if self.analysis_display_image
+                or "dynamic" in self.analysis_display_image_list
                 else []
             )
             if not images:
@@ -277,7 +349,7 @@ class BiliBiliExtract:
                 if short_link:
                     content += f"\n动态包含转发视频{short_link}"
                 else:
-                    content += f"\n动态包含转发其他动态"
+                    content += "\n动态包含转发其他动态"
             msg = [images, content, f"\n动态链接：{video_url}"]
             return msg, video_url
         except Exception as e:

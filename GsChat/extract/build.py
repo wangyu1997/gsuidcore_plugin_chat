@@ -1,3 +1,3 @@
 from ..utils import Registry
 
-EXTRACT = Registry('extract')
+EXTRACT = Registry("extract")

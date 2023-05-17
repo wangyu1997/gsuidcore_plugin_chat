@@ -1,12 +1,12 @@
 import json
 
-from ImageGen import ImageGenAsync
-
 from gsuid_core.bot import Bot
-from gsuid_core.data_store import get_res_path
+from ImageGen import ImageGenAsync
 from gsuid_core.logger import logger
-from .base import BaseImage
+from gsuid_core.data_store import get_res_path
+
 from .build import IMAGE
+from .base import BaseImage
 
 
 @IMAGE.register_module()
@@ -24,13 +24,13 @@ class BingImg(BaseImage):
                 for url in images:
                     self.send_urls.append(url)
         except Exception as e:
-            logger.info(f'{type(e)}: 图片发送失败: {e}')
+            logger.info(f"{type(e)}: 图片发送失败: {e}")
             if "block" in str(e):
-                await bot.send('对不起，该内容不适合展示，已经被风控，换个词试试吧。')
+                await bot.send("对不起，该内容不适合展示，已经被风控，换个词试试吧。")
 
     def init_data(self):
-        self.res_path = get_res_path('GsChat')
-        cookie_path = self.res_path / 'bing_cookies'
+        self.res_path = get_res_path("GsChat")
+        cookie_path = self.res_path / "bing_cookies"
         cookie_path.mkdir(parents=True, exist_ok=True)
         cookies_files: list = [
             file
@@ -40,7 +40,8 @@ class BingImg(BaseImage):
 
         try:
             cookies = [
-                json.load(open(file, "r", encoding="utf-8")) for file in cookies_files
+                json.load(open(file, "r", encoding="utf-8"))
+                for file in cookies_files
             ]
             self.Us = []
             for cookie in cookies:

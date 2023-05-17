@@ -1,16 +1,19 @@
 import copy
 import json
-from datetime import datetime
 from pathlib import Path
+from datetime import datetime
 
-from gsuid_core.data_store import get_res_path
 from gsuid_core.logger import logger
+from gsuid_core.data_store import get_res_path
+
 from .build import BILLING
 from ..utils import BaseBrowser, template_to_pic
 
 
 class BillingItem:
-    def __init__(self, name: str, date=None, money=0.0, payer="", customers=[]):
+    def __init__(
+        self, name: str, date=None, money=0.0, payer="", customers=[]
+    ):
         self.format_str = "%Y-%m-%d %H:%M"
         self.name = name
         self.money = money
@@ -99,7 +102,10 @@ class BillingModel:
             f.write(json.dumps(datas, ensure_ascii=False, indent=4))
 
     def alias(self, group_id, username):
-        if group_id not in self.name_map or username not in self.name_map[group_id]:
+        if (
+            group_id not in self.name_map
+            or username not in self.name_map[group_id]
+        ):
             return username
 
         return self.name_map[group_id][username]
@@ -109,7 +115,9 @@ class BillingModel:
         await self.write_back(group_id)
 
     async def add_new(self, group_id, name, money, payer, customers):
-        bill = BillingItem(name, money=money, payer=payer, customers=customers)
+        bill = BillingItem(
+            name, money=money, payer=payer, customers=customers
+        )
         self.data[group_id].append(bill)
         await self.write_back(group_id)
         return f"名称: {bill.name}\n时间: {bill.time}\n金额: {bill.money}\n支出者: {self.alias(group_id, bill.payer)}\n均摊者: {','.join([self.alias(group_id, i) for i in bill.customers])}\n"
@@ -137,7 +145,9 @@ class BillingModel:
         for day in sorted_day:
             billings = output_dict[day]
             res += f"{day}\n" + "-" * 30 + "\n"
-            for idx, bill in enumerate(sorted(billings, key=lambda x: x.time)):
+            for idx, bill in enumerate(
+                sorted(billings, key=lambda x: x.time)
+            ):
                 res += f"名称: {bill.name}\n时间: {bill.time}\n金额: {bill.money}\n支出者: {self.alias(group_id, bill.payer)}\n均摊者: {','.join([self.alias(group_id, i) for i in bill.customers])}\n"
                 if idx < len(billings) - 1:
                     res += "\n"
@@ -155,7 +165,9 @@ class BillingModel:
                         user_pay[user] = {}
                     if bill.payer not in user_pay[user]:
                         user_pay[user][bill.payer] = 0
-                    user_pay[user][bill.payer] += bill.money / (len(bill.customers) + 1)
+                    user_pay[user][bill.payer] += bill.money / (
+                        len(bill.customers) + 1
+                    )
 
         for customer in user_pay:
             data = user_pay[customer]
@@ -165,7 +177,9 @@ class BillingModel:
                         user_pay[payer][customer] -= data[payer]
                         user_pay[customer][payer] = 0
                     else:
-                        user_pay[customer][payer] -= user_pay[payer][customer]
+                        user_pay[customer][payer] -= user_pay[payer][
+                            customer
+                        ]
                         user_pay[payer][customer] = 0
 
         for customer in user_pay:
@@ -173,7 +187,9 @@ class BillingModel:
             payer_text = ""
             for payer in data:
                 if data[payer] > 0:
-                    payer_text += f"收款人: {self.alias(group_id, payer)} \n"
+                    payer_text += (
+                        f"收款人: {self.alias(group_id, payer)} \n"
+                    )
                     payer_text += f"收款金额: {data[payer]:.2f} \n\n"
             if payer_text:
                 res += (
@@ -203,7 +219,9 @@ class BillingModel:
         if today in sorted_day:
             billings = output_dict[today]
             res += f"{today}\n" + "-" * 30 + "\n"
-            for idx, bill in enumerate(sorted(billings, key=lambda x: x.time)):
+            for idx, bill in enumerate(
+                sorted(billings, key=lambda x: x.time)
+            ):
                 res += f"名称: {bill.name}\n时间: {bill.time}\n金额: {bill.money}\n支出者: {self.alias(group_id, bill.payer)}\n均摊者: {','.join([self.alias(group_id, i) for i in bill.customers])}\n"
                 if idx < len(billings) - 1:
                     res += "\n"
@@ -222,11 +240,14 @@ class BillingModel:
             output_dict[bill.day].append(bill)
 
         sorted_day = sorted(output_dict)
-        res = f"{self.alias(group_id, username)}的支出\n\n"
+        nickname = self.alias(group_id, username)
+        res = f"{nickname}的支出\n\n"
         for day in sorted_day:
             billings = output_dict[day]
             day_res = ""
-            for idx, bill in enumerate(sorted(billings, key=lambda x: x.time)):
+            for idx, bill in enumerate(
+                sorted(billings, key=lambda x: x.time)
+            ):
                 if bill.payer == username:
                     day_res += f"名称: {bill.name}\n时间: {bill.time}\n金额: {bill.money}\n均摊者: {','.join([self.alias(group_id, i) for i in bill.customers])}\n"
                     if idx < len(billings) - 1:
@@ -239,7 +260,9 @@ class BillingModel:
         for day in sorted_day:
             billings = output_dict[day]
             day_res = ""
-            for idx, bill in enumerate(sorted(billings, key=lambda x: x.time)):
+            for idx, bill in enumerate(
+                sorted(billings, key=lambda x: x.time)
+            ):
                 if bill.payer in bill.customers:
                     day_res += f"名称: {bill.name}\n时间: {bill.time}\n金额: {bill.money}\n支出者: {self.alias(group_id, bill.payer)}\n均摊者: {','.join([self.alias(group_id, i) for i in bill.customers])}\n"
                     if idx < len(billings) - 1:
@@ -268,7 +291,10 @@ class BillingModel:
                 },
                 browser=browser,
                 pages={
-                    "viewport": {"width": int(img_width), "height": int(img_height)},
+                    "viewport": {
+                        "width": int(img_width),
+                        "height": int(img_height),
+                    },
                     "base_url": f"file://{template_path}",
                 },
             )

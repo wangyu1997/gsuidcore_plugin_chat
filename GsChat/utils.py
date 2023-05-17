@@ -1,26 +1,28 @@
-import asyncio
-import base64
-import inspect
 import re
-import asyncio
-from functools import partial
-from contextlib import asynccontextmanager
-from contextlib import suppress
-from io import BytesIO
-from os import getcwd
-from typing import Literal, Union
-from typing import Optional, AsyncGenerator
 import hmac
+import base64
+import asyncio
 import hashlib
+import inspect
+from os import getcwd
+from io import BytesIO
+from functools import partial
+from contextlib import suppress, asynccontextmanager
+from typing import Union, Literal, Optional, AsyncGenerator
 
 import jinja2
-from PIL import Image, ImageDraw, ImageFont
 from httpx import AsyncClient
-from playwright.async_api import Page, Browser, Playwright, async_playwright, Error
-
 from gsuid_core.bot import Bot
 from gsuid_core.logger import logger
+from PIL import Image, ImageDraw, ImageFont
 from gsuid_core.segment import MessageSegment
+from playwright.async_api import (
+    Page,
+    Error,
+    Browser,
+    Playwright,
+    async_playwright,
+)
 
 LINE_CHAR_COUNT = 30 * 2
 CHAR_SIZE = 30
@@ -38,8 +40,8 @@ async def request_img(img_url, client):
 
 # 简单去除wx at有可能误杀
 async def remove_at(msg: str):
-    if ' ' not in msg and '@' in msg:
-        msg = ''
+    if " " not in msg and "@" in msg:
+        msg = ""
     msg = re.sub(r"@.*? ", "", msg)
     return msg
 
@@ -60,7 +62,9 @@ async def line_break(line: str) -> str:
             width = 0
             ret += c
         elif c == "\t":
-            space_c = TABLE_WIDTH - width % TABLE_WIDTH  # 已有长度对TABLE_WIDTH取余
+            space_c = (
+                TABLE_WIDTH - width % TABLE_WIDTH
+            )  # 已有长度对TABLE_WIDTH取余
             ret += " " * space_c
             width += space_c
         else:
@@ -72,17 +76,26 @@ async def line_break(line: str) -> str:
     return ret if ret.endswith("\n") else ret + "\n"
 
 
-async def txt_to_img(text: str, font_size=30, font_path="hywh.ttf") -> bytes:
+async def txt_to_img(
+    text: str, font_size=30, font_path="hywh.ttf"
+) -> bytes:
     """将文本转换为图片"""
     text = await line_break(text)
-    text = '\n'.join([text] * 10)
+    text = "\n".join([text] * 10)
     d_font = ImageFont.truetype(font_path, font_size)
-    lines = len(text.split('\n'))
+    lines = len(text.split("\n"))
     image = Image.new(
-        "L", (LINE_CHAR_COUNT * font_size // 2 + 50, font_size * lines + 300), "white"
+        "L",
+        (
+            LINE_CHAR_COUNT * font_size // 2 + 50,
+            font_size * lines + 300,
+        ),
+        "white",
     )
     draw_table = ImageDraw.Draw(im=image)
-    draw_table.text(xy=(25, 25), text=text, fill="#000000", font=d_font, spacing=4)
+    draw_table.text(
+        xy=(25, 25), text=text, fill="#000000", font=d_font, spacing=4
+    )
     new_img = image.convert("RGB")
     img_byte = BytesIO()
     new_img.save(img_byte, format="PNG")
@@ -107,13 +120,13 @@ class Registry:
 
     def __repr__(self):
         format_str = (
-            f'{self.__class__.__name__}(name={self._name}, '
-            f'items={self._module_dict})'
+            f"{self.__class__.__name__}(name={self._name}, "
+            f"items={self._module_dict})"
         )
         return format_str
 
     def get(self, key: str):
-        assert key in self._module_dict, f'{key} not find'
+        assert key in self._module_dict, f"{key} not find"
         return self._module_dict.get(key)
 
     def build(self, *args, **kwargs):
@@ -121,13 +134,17 @@ class Registry:
 
     def _register_module(self, module_cls, name=None):
         if not inspect.isclass(module_cls):
-            raise TypeError(f'module must be a class, but got {type(module_cls)}')
+            raise TypeError(
+                f"module must be a class, but got {type(module_cls)}"
+            )
 
         if name is None:
             name = module_cls.__name__
 
         if name in self._module_dict:
-            raise KeyError(f'{name} is already registered in {self.name}')
+            raise KeyError(
+                f"{name} is already registered in {self.name}"
+            )
 
         self._module_dict[name] = module_cls
 
@@ -149,16 +166,20 @@ class Registry:
 
 def build_from_cfg(config, registry):
     if not config.name:
-        raise RuntimeError(f'the name of the cfg for {registry.name} is needed!')
+        raise RuntimeError(
+            f"the name of the cfg for {registry.name} is needed!"
+        )
 
     if not isinstance(config.name, str):
-        raise RuntimeError(f'the name of the cfg for {registry.name} should be str !')
+        raise RuntimeError(
+            f"the name of the cfg for {registry.name} should be str !"
+        )
 
     cls = registry.get(config.name)
     try:
         return cls(config)
     except Exception as e:
-        raise type(e)(f'{cls.__name__}: {e}')
+        raise type(e)(f"{cls.__name__}: {e}")
 
 
 async def download_file(file_path, url):
@@ -190,14 +211,16 @@ class BaseBrowser:
             self._playwright = await async_playwright().start()
             self._browser = await self.launch_browser(**kwargs)
         except NotImplementedError:
-            logger.warning('Playwright', '初始化失败，请关闭FASTAPI_RELOAD')
+            logger.warning("Playwright", "初始化失败，请关闭FASTAPI_RELOAD")
         except Error:
             await self.install_browser()
             self._browser = await self.launch_browser(**kwargs)
         return self._browser
 
     async def launch_browser(self, **kwargs) -> Browser:
-        assert self._playwright is not None, "Playwright is not initialized"
+        assert (
+            self._playwright is not None
+        ), "Playwright is not initialized"
         return await self._playwright.chromium.launch(**kwargs)
 
     async def get_browser(self, **kwargs) -> Browser:
@@ -209,15 +232,17 @@ class BaseBrowser:
 
         from playwright.__main__ import main
 
-        logger.info('Playwright', '正在安装 chromium')
+        logger.info("Playwright", "正在安装 chromium")
         sys.argv = ["", "install", "chromium"]
         with suppress(SystemExit):
-            logger.info('Playwright', '正在安装依赖')
+            logger.info("Playwright", "正在安装依赖")
             os.system("playwright install-deps")
             main()
 
     @asynccontextmanager
-    async def get_new_page(self, **kwargs) -> AsyncGenerator[Page, None]:
+    async def get_new_page(
+        self, **kwargs
+    ) -> AsyncGenerator[Page, None]:
         assert self._browser, "playwright尚未初始化"
         page = await self._browser.new_page(**kwargs)
         try:
@@ -314,7 +339,7 @@ async def _send_img(url: str, bot: Bot):
             if img_bytes:
                 await bot.send(img_bytes)
         except Exception as e:
-            logger.info(f'{type(e)}: 图片发送失败: {e}')
+            logger.info(f"{type(e)}: 图片发送失败: {e}")
 
 
 async def send_img(urls, bot: Bot):
@@ -324,7 +349,7 @@ async def send_img(urls, bot: Bot):
         return
 
     bot_id = bot.bot_id
-    if bot_id == 'onebot_v12':
+    if bot_id == "onebot_v12":
         messages = []
         for url in urls:
             messages.append(MessageSegment.image(url))
@@ -338,8 +363,10 @@ async def send_img(urls, bot: Bot):
 
 async def send_file(url, bot: Bot, filename=None):
     bot_id = bot.bot_id
-    if bot_id == 'onebot_v12':
-        await bot.send(MessageSegment.file(content=url, file_name=filename))
+    if bot_id == "onebot_v12":
+        await bot.send(
+            MessageSegment.file(content=url, file_name=filename)
+        )
     else:
         async with AsyncClient(verify=False, timeout=None) as client:
             try:
@@ -352,7 +379,7 @@ async def send_file(url, bot: Bot, filename=None):
                         )
                     )
             except Exception as e:
-                logger.info(f'{type(e)}: 文件发送失败: {e}')
+                logger.info(f"{type(e)}: 文件发送失败: {e}")
 
 
 async def to_async(func, **kwargs):
@@ -363,8 +390,8 @@ async def to_async(func, **kwargs):
     return data
 
 
-def map_str_to_unique_string(s, key='HASH_KEY'):
+def map_str_to_unique_string(s, key="HASH_KEY"):
     hashed = hmac.new(key.encode(), s.encode(), hashlib.sha256).digest()
-    unique_string = ''.join(format(x, '02x') for x in hashed)[:15]
+    unique_string = "".join(format(x, "02x") for x in hashed)[:15]
     unique_string = unique_string[: max(4, len(unique_string))]
     return unique_string

@@ -1,3 +1,3 @@
 from ..utils import Registry
 
-OTHER = Registry('other')
+OTHER = Registry("other")

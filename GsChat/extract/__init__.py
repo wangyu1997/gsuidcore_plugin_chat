@@ -1,4 +1,4 @@
-from .bilibili import BiliBiliExtract
 from .build import EXTRACT
+from .bilibili import BiliBiliExtract
 
-__all__ = ['BiliBiliExtract', 'EXTRACT']
+__all__ = ["BiliBiliExtract", "EXTRACT"]

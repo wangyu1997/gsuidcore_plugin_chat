@@ -1,12 +1,17 @@
+from gsuid_core.sv import SV
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 from gsuid_core.segment import MessageSegment
-from gsuid_core.sv import SV
-from .billing import BILLING, BillingModel
-from .config import config
 
-bill_sv = SV("账单事项", pm=6, priority=9, enabled=True, black_list=[], area="GROUP")
-bill_admin_sv = SV("账单管理员", pm=1, priority=9, enabled=True, black_list=[], area="GROUP")
+from .config import config
+from .billing import BILLING, BillingModel
+
+bill_sv = SV(
+    "账单事项", pm=6, priority=9, enabled=True, black_list=[], area="GROUP"
+)
+bill_admin_sv = SV(
+    "账单管理员", pm=1, priority=9, enabled=True, black_list=[], area="GROUP"
+)
 
 bill_model: BillingModel = BILLING.build(config.other.billing)
 
@@ -41,7 +46,7 @@ async def today_billing(bot: Bot, event: Event):
     ("清算", "结算账单"),
     block=True,
 )
-async def get_billing(bot: Bot, event: Event):
+async def calculate_billing(bot: Bot, event: Event):
     group_id = event.group_id
     res = await bill_model.checkout(group_id)
     if not res:
@@ -68,7 +73,7 @@ async def my_billing(bot: Bot, event: Event):
     ("创建账单", "重置账单"),
     block=True,
 )
-async def new_billing(bot: Bot, event: Event):
+async def create_billing(bot: Bot, event: Event):
     group_id = event.group_id
     await bill_model.renew(group_id)
     await bot.send("当前群聊账单创建成功")
@@ -78,7 +83,7 @@ async def new_billing(bot: Bot, event: Event):
     "撤销账单",
     block=True,
 )
-async def new_billing(bot: Bot, event: Event):
+async def withdraw_billing(bot: Bot, event: Event):
     group_id = event.group_id
 
     res = await bill_model.discard(group_id)
@@ -99,7 +104,7 @@ async def new_billing(bot: Bot, event: Event):
     text = event.raw_text
     try:
         text = text.split("账单")[1].strip()
-    except:
+    except Exception:
         return
     if not at_list:
         await bot.send("请at需要平摊费用的好友")
@@ -107,9 +112,11 @@ async def new_billing(bot: Bot, event: Event):
         name, money = text.split(" ")
         try:
             money = float(money.strip())
-            res = await bill_model.add_new(group_id, name, money, user_id, at_list)
+            res = await bill_model.add_new(
+                group_id, name, money, user_id, at_list
+            )
             await bot.send("当前群聊账单创建成功\n新增开销:\n" + res)
-        except Exception as e:
+        except Exception:
             await bot.send("金额必须为小数")
 
 
@@ -117,7 +124,7 @@ async def new_billing(bot: Bot, event: Event):
     ("设置昵称", "昵称"),
     block=True,
 )
-async def my_billing(bot: Bot, event: Event):
+async def set_nickname(bot: Bot, event: Event):
     group_id = event.group_id
     if event.at_list:
         user_id = event.at_list[0]
