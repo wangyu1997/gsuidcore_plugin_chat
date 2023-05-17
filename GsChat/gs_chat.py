@@ -173,17 +173,23 @@ async def hint_style(bot: Bot, event: Event):
 async def show_style(bot: Bot, event: Event):
     user_id, _, engine_name = chat_engine.get_bot_info(event)
     if engine_name == 'Bing':
-        await bot.send(f'您当前的引擎为[{engine_name}]\n'
-                       f'请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n'
-                       f'1. 创造型的\n2. 平衡性的\n3. 精准型的')
+        await bot.send(
+            f'您当前的引擎为[{engine_name}]\n'
+            f'请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n'
+            f'1. 创造型\n2. 平衡型\n3. 精准型'
+        )
     elif engine_name == 'Poe':
-        await bot.send(f'您当前的引擎为[{engine_name}]\n'
-                       f'请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n'
-                       f'1. Sage\n2. Claude\n3. ChatGPT\n4. Dragonfly')
+        await bot.send(
+            f'您当前的引擎为[{engine_name}]\n'
+            f'请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n'
+            f'1. Sage\n2. Claude\n3. ChatGPT\n4.NeevaAI\n5. Dragonfly\n6. 私人会话'
+        )
     elif engine_name == 'Normal':
-        await bot.send(f'您当前的引擎为[{engine_name}]\n'
-                       f'请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n'
-                       f'1. 正常风格\n2. 预设风格(默认为猫娘风格)')
+        await bot.send(
+            f'您当前的引擎为[{engine_name}]\n'
+            f'请根据一下提示输入 切换风格+序号 来切换风格\n 如 切换风格 1\n'
+            f'1. 正常风格\n2. 预设风格(默认为猫娘风格)'
+        )
     else:
         await bot.send(f'您当前的引擎为[{engine_name}\n暂不支持切换风格')
 
@@ -202,32 +208,42 @@ async def handle_style(bot: Bot, event: Event):
 
     user_id, _, engine_name = chat_engine.get_bot_info(event)
     if engine_name == 'Bing':
-        style_map = {'creative': '创造型的', 'balanced': '平衡性的', 'precise': '精准型的'}
+        style_map = {'creative': '创造型', 'balanced': '平衡型', 'precise': '精准型'}
         chatbot = await chat_engine.get_singleton_bot('Bing')
         if num not in [1, 2, 3]:
-            await bot.send('输入有误，请重新输入正确序号:\n'
-                           f'1. 创造型的\n2. 平衡性的\n3. 精准型的')
+            await bot.send('输入有误，请重新输入正确序号:\n' f'1. 创造型\n2. 平衡型\n3. 精准型')
             return
     elif engine_name == 'Poe':
-        style_map = {'capybara': 'Sage', 'a2': 'Claude', 'chinchilla': 'ChatGPT', 'nutria': 'Dragonfly'}
+        style_map = {
+            'capybara': 'Sage',
+            'a2': 'Claude',
+            'chinchilla': 'ChatGPT',
+            'hutia': 'NeevaAI',
+            'nutria': 'Dragonfly',
+            'custom': '私人会话',
+        }
         chatbot = await chat_engine.get_singleton_bot('Poe')
-        if num not in [1, 2, 3, 4]:
-            await bot.send('输入有误，请重新输入正确序号:\n'
-                           f'1. Sage\n2. Claude\n3. ChatGPT\n4. Dragonfly')
+        if num not in [1, 2, 3, 4, 5, 6]:
+            await bot.send(
+                '输入有误，请重新输入正确序号:\n'
+                f'1. Sage\n2. Claude\n3. ChatGPT\n4.NeevaAI\n5. Dragonfly\n6. 私人会话'
+            )
             return
     elif engine_name == 'Normal':
         style_map = {False: '正常风格', True: '预设风格'}
         chatbot = await chat_engine.get_singleton_bot('Normal')
         if num not in [1, 2]:
-            await bot.send('输入有误，请重新输入正确序号:\n'
-                           f'1. 正常风格\n2. 预设风格(默认为猫娘风格)')
+            await bot.send('输入有误，请重新输入正确序号:\n' f'1. 正常风格\n2. 预设风格(默认为猫娘风格)')
             return
     else:
         await bot.send(f'您当前的引擎为[{engine_name}\n暂不支持切换风格')
         return
     style = list(style_map.keys())[num - 1]
     try:
-        await chatbot.switch_style(user_id, style, bot, event)
-        await bot.send(f'切换成功，已为您创建新的会话\n当前{engine_name}的风格为 [{style_map[style]}]')
+        status, msg = await chatbot.switch_style(user_id, style, bot, event)
+        if not status:
+            await bot.send(msg)
+        else:
+            await bot.send(f'切换成功，已为您创建新的会话\n当前{engine_name}的风格为 [{style_map[msg]}]')
     except Exception as e:
         await bot.send(f'切换失败：{str(e)}')

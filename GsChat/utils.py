@@ -2,12 +2,16 @@ import asyncio
 import base64
 import inspect
 import re
+import asyncio
+from functools import partial
 from contextlib import asynccontextmanager
 from contextlib import suppress
 from io import BytesIO
 from os import getcwd
 from typing import Literal, Union
 from typing import Optional, AsyncGenerator
+import hmac
+import hashlib
 
 import jinja2
 from PIL import Image, ImageDraw, ImageFont
@@ -349,3 +353,18 @@ async def send_file(url, bot: Bot, filename=None):
                     )
             except Exception as e:
                 logger.info(f'{type(e)}: 文件发送失败: {e}')
+
+
+async def to_async(func, **kwargs):
+    loop = asyncio.get_event_loop()
+    print(kwargs)
+    partial_func = partial(func, **kwargs)
+    data = await loop.run_in_executor(None, partial_func)
+    return data
+
+
+def map_str_to_unique_string(s, key='HASH_KEY'):
+    hashed = hmac.new(key.encode(), s.encode(), hashlib.sha256).digest()
+    unique_string = ''.join(format(x, '02x') for x in hashed)[:15]
+    unique_string = unique_string[: max(4, len(unique_string))]
+    return unique_string

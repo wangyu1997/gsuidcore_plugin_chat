@@ -42,7 +42,7 @@ class NormalChat(BaseChat):
             "last_time": current_time,
             "sessions_number": 0,
             "isRunning": False,
-            'person': True
+            'person': True,
         }
 
     async def _ask(self, user_id, bot: Bot, event: Event):
@@ -157,6 +157,7 @@ class NormalChat(BaseChat):
                 if self.config.show_create:
                     await bot.send(f'{self.config.name} 对话已创建')
             else:
-                return
+                return False, f"创建{self.config.name}对话失败"
         self.chat_dict[user_id]['person'] = style
         self.chat_dict[user_id]['session'] = []
+        return True, style

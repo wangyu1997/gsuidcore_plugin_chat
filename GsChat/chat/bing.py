@@ -21,7 +21,11 @@ class BingChat(BaseChat):
         current_time: int = int(time.time())
         chat_bot = bingChatbot(cookies=self._get_random_key())
         self.chat_dict[user_id] = {
-            "chatbot": chat_bot, "last_time": current_time, "model": self.style, "isRunning": False}
+            "chatbot": chat_bot,
+            "last_time": current_time,
+            "model": self.style,
+            "isRunning": False,
+        }
 
     async def _ask(self, user_id, bot: Bot, event: Event):
         msg = event.text.strip()
@@ -37,9 +41,7 @@ class BingChat(BaseChat):
             return
 
         self.chat_dict[user_id]["isRunning"] = False
-        if (
-            data["item"]["result"]["value"] != "Success"
-        ):
+        if data["item"]["result"]["value"] != "Success":
             await bot.send(
                 "返回Error: " + data["item"]["result"]["value"] + "请重试", at_sender=True
             )
@@ -57,7 +59,7 @@ class BingChat(BaseChat):
         if "text" not in data["item"]["messages"][1]:
             await bot.send(
                 data["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"],
-                at_sender=True
+                at_sender=True,
             )
             return
 
@@ -78,7 +80,9 @@ class BingChat(BaseChat):
         cookie_path = self.res_path / 'bing_cookies'
         cookie_path.mkdir(parents=True, exist_ok=True)
         cookies_files: list = [
-            file for file in cookie_path.rglob("*.json") if file.stem.startswith("cookie")
+            file
+            for file in cookie_path.rglob("*.json")
+            if file.stem.startswith("cookie")
         ]
 
         try:
@@ -118,5 +122,6 @@ class BingChat(BaseChat):
                 if self.config.show_create:
                     await bot.send(f'{self.config.name} 对话已创建')
             else:
-                return
+                return False, f"创建{self.config.name}对话失败"
         self.chat_dict[user_id]['model'] = style
+        return True, style
