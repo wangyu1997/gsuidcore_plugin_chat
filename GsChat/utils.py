@@ -389,7 +389,7 @@ async def to_async(func, **kwargs):
     return data
 
 
-def map_str_to_unique_string(s, key="SECRET_HASH_KEY"):
+def map_str_to_unique_string(s, key="12SECRET_HASH_KEY"):
     hashed = hmac.new(key.encode(), s.encode(), hashlib.sha256).digest()
     unique_string = "".join(format(x, "02x") for x in hashed)[:15]
     unique_string = unique_string[: max(4, len(unique_string))]
