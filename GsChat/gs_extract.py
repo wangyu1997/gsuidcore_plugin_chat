@@ -12,7 +12,7 @@ from .utils import send_img, send_file
 from .extract import EXTRACT, BiliBiliExtract
 
 extract_sv = SV(
-    "提取网页", pm=5, priority=9, enabled=True, black_list=[], area="ALL"
+    "提取网页", pm=6, priority=9, enabled=True, black_list=[], area="ALL"
 )
 
 bili: BiliBiliExtract = EXTRACT.build(config.extract.bilibili)
