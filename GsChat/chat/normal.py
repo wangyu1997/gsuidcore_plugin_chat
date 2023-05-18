@@ -64,6 +64,14 @@ class NormalChat(BaseChat):
                 self.chat_dict[user_id]["session"].append((msg, result))
                 data = result
             self.chat_dict[user_id]["isRunning"] = False
+
+            if self.show:
+                sessions_number = self.chat_dict[user_id][
+                    "sessions_number"
+                ]
+                data = (
+                    f"{data}\n\n当前会话:{sessions_number}   字数异常请发送[重置对话]"
+                )
             return data
 
         except Exception as e:
@@ -168,10 +176,20 @@ class NormalChat(BaseChat):
         if user_id not in self.chat_dict:
             res = await self.create(user_id, bot, event)
             if res:
-                if self.config.show_create:
+                if self.show:
                     await bot.send(f"{self.config.name} 对话已创建")
             else:
                 return False, f"创建{self.config.name}对话失败"
         self.chat_dict[user_id]["person"] = style
         self.chat_dict[user_id]["session"] = []
         return True, style
+
+    def get_style(self, user_id):
+        """初始化cookie或者key"""
+        style_map = {0: "正常风格", 1: "预设风格(默认为猫娘风格)"}
+
+        style = "正常风格"
+        if user_id in self.chat_dict:
+            style = style_map[self.chat_dict[user_id]['person']]
+
+        return style

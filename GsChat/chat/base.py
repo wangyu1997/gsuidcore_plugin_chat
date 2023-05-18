@@ -18,6 +18,7 @@ class BaseChat(metaclass=ABCMeta):
         self.chat_dict = {}
         self.cookies = []
         self.keys = []
+        self.show = self.config.show_create
         self.cd_time = config.cd_time
         self.res_path = get_res_path("GsChat")
 
@@ -52,7 +53,7 @@ class BaseChat(metaclass=ABCMeta):
         if user_id not in self.chat_dict:
             res = await self.create(user_id, bot, event)
             if res:
-                if self.config.show_create:
+                if self.show:
                     await bot.send(f"{self.config.name} 对话已创建")
             else:
                 return
@@ -61,7 +62,7 @@ class BaseChat(metaclass=ABCMeta):
             user_id in self.chat_dict
             and self.chat_dict[user_id]["isRunning"]
         ):
-            await bot.send("当前会话正在运行中, 请稍后再发起请求", at_sender=True)
+            await bot.send("我正在努力回答您的问题，请再稍等一下下...", at_sender=True)
             return
 
         self.chat_dict[user_id]["isRunning"] = True
@@ -71,6 +72,7 @@ class BaseChat(metaclass=ABCMeta):
         if not message:
             return
 
+        message = message.strip()
         try:
             await bot.send(message, at_sender=True)
         except Exception as e:
@@ -97,6 +99,11 @@ class BaseChat(metaclass=ABCMeta):
 
     @abstractmethod
     def init_data(self):
+        """初始化cookie或者key"""
+        pass
+
+    @abstractmethod
+    def get_style(self, user_id):
         """初始化cookie或者key"""
         pass
 

@@ -43,8 +43,15 @@ class POEChat(BaseChat):
 
     async def _create(self, user_id):
         current_time = int(time.time())
+        model = self.model
+        # 如果new_create就不用重置对话，说明刚接上
+        new_create = user_id not in self.chat_dict
+
         if not self.chatbot:
             await self.get_new_bot(user_id)
+
+        if new_create and self.model not in self.default_bots:
+            model = await self.create_user_bot(user_id)
 
         if user_id in self.chat_dict:
             model = self.chat_dict[user_id]["model"]
@@ -56,7 +63,7 @@ class POEChat(BaseChat):
 
         self.chat_dict[user_id] = {
             "last_time": current_time,
-            "model": self.model,
+            "model": model,
             "sessions_number": 0,
             "isRunning": False,
         }
@@ -85,8 +92,8 @@ class POEChat(BaseChat):
             return
         self.chat_dict[user_id]["isRunning"] = False  # 将当前会话状态设置为未运行
         sessions_number = self.chat_dict[user_id]["sessions_number"]
-        data += f'\n\n当前会话: {sessions_number}   字数异常请发送"重置对话"'
-
+        if self.show:
+            data += f'\n\n当前会话: {sessions_number}   字数异常请发送[重置对话]'
         return data
 
     async def init_data(self):
@@ -109,7 +116,7 @@ class POEChat(BaseChat):
             if user_id not in self.chat_dict:
                 res = await self.create(user_id, bot, event)
                 if res:
-                    if self.config.show_create:
+                    if self.show:
                         await bot.send(f"{self.config.name} 对话已创建")
                 else:
                     return
@@ -125,9 +132,7 @@ class POEChat(BaseChat):
             return False, f"创建Poe对话失败, {str(e)}"
 
     async def create_user_bot(self, user_id):
-        bot_id = str(user_id)
-        bot_id = map_str_to_unique_string(bot_id)
-        bot_id = str(user_id)[:5] + bot_id[5:]
+        bot_id = self.get_hash_name(user_id)
         if bot_id not in self.chatbot.bot_names:
             await to_async(
                 self.chatbot.create_bot,
@@ -136,3 +141,30 @@ class POEChat(BaseChat):
                 base_model="a2",
             )
         return bot_id
+
+    def get_hash_name(self, user_id):
+        bot_id = str(user_id)
+        bot_id = map_str_to_unique_string(bot_id)
+        # bot_id = bot_id[5:]
+
+        return bot_id
+
+    def get_style(self, user_id):
+        """初始化cookie或者key"""
+        style_map = {
+            "capybara": "Sage",
+            "a2": "Claude",
+            "chinchilla": "ChatGPT",
+            "hutia": "NeevaAI",
+            "nutria": "Dragonfly",
+            "custom": "私人会话",
+        }
+
+        style = self.model
+        if user_id in self.chat_dict:
+            try:
+                style = style_map.get[self.chat_dict[user_id]['model']]
+            except Exception:
+                style = '私人会话'
+
+        return style

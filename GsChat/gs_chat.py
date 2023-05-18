@@ -108,11 +108,14 @@ async def change_engine(bot: Bot, event: Event):
         await bot.send(f"暂时不支持引擎 [{bot_name}] ")
 
     new_engine_name = chat_engine.get_engine(bot_name=bot_name)
-    _, group, _ = chat_engine.get_bot_info(event)
+    user_id, group, _ = chat_engine.get_bot_info(event)
     chat_engine.change_engine(event, new_engine_name)
-
+    chatbot: BaseChat = await chat_engine.get_singleton_bot(
+        new_engine_name
+    )
+    style = chatbot.get_style(user_id)
     await bot.send(
-        f'已切换当前[{"群聊" if group else "私聊"}] 引擎为: [{new_engine_name}]'
+        f'切换成功!\n模式: [{"群聊" if group else "私人"}模式]\n引擎: [{new_engine_name}]\n风格: [{style}]'
     )
 
 
@@ -129,12 +132,12 @@ async def mode_handle(bot: Bot, event: Event):
         await bot.send("私人聊天无法切换模式哦, 在群组中使用该命令。")
         return
 
-    _, _, engine = chat_engine.get_bot_info(event)
+    user_id, _, engine = chat_engine.get_bot_info(event)
     group = chat_engine.change_mode(event.group_id)
-    _, _, engine = chat_engine.get_bot_info(event)
-
+    chatbot: BaseChat = await chat_engine.get_singleton_bot(engine)
+    style = chatbot.get_style(user_id)
     await bot.send(
-        f'切换成功\n当前模式为: [{"群聊" if group else "私人"}模式]\n当前引擎为: [{engine}]'
+        f'切换成功!\n模式: [{"群聊" if group else "私人"}模式]\n引擎: [{engine}]\n风格: [{style}]'
     )
 
 
@@ -146,16 +149,19 @@ async def reserve_handle(bot: Bot, event: Event):
     user_id, group, engine_name = chat_engine.get_bot_info(event)
     chatbot: BaseChat = await chat_engine.get_singleton_bot(engine_name)
     if await chatbot.reset(user_id, bot, event):
+        style = chatbot.get_style(user_id)
         await bot.send(
-            f'已重置当前[{"群聊" if group else "私聊"}] 引擎为: [{engine_name}]'
+            f'重置成功!\n模式: [{"群聊" if group else "私聊"}]\n引擎: [{engine_name}]\n风格: [{style}]'
         )
 
 
 @chat_sv.on_fullmatch("查看引擎", block=True)
 async def _(bot: Bot, event: Event):
-    _, group, engine_name = chat_engine.get_bot_info(event)
+    user_id, group, engine_name = chat_engine.get_bot_info(event)
+    chatbot: BaseChat = await chat_engine.get_singleton_bot(engine_name)
+    style = chatbot.get_style(user_id)
     await bot.send(
-        f'当前[{"群聊" if group else "私聊"}] 引擎为: [{engine_name}]'
+        f'模式: [{"群聊" if group else "私聊"}]\n引擎: [{engine_name}]\n风格: [{style}]'
     )
 
 
@@ -196,7 +202,7 @@ async def hint_style(bot: Bot, event: Event):
 
 
 async def show_style(bot: Bot, event: Event):
-    user_id, _, engine_name = chat_engine.get_bot_info(event)
+    _, _, engine_name = chat_engine.get_bot_info(event)
     if engine_name == "Bing":
         await bot.send(
             f"您当前的引擎为[{engine_name}]\n"

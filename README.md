@@ -37,7 +37,7 @@
 
 ```
 chat: #聊天模块
-  Bing: 
+  Bing:
     cd_time: 120 # bing重置的CD, 下同
     proxy: '' # bing的代理,国内部署需配置, 下同
     style: creative # bing的风格 支持 [creative/balanced/precise]
@@ -61,18 +61,18 @@ chat: #聊天模块
     model: capybara # 默认使用Sega模型，效果最好
     proxy: ''
     show_create: true
-  default: chat # 默认聊天引擎 [chat/bing/openai]
+  default: chat # 默认聊天引擎 [chat/bing/openai/poe(私人模式设置model为custom)]
 genshin:
   material:
     push_time: '4:10' # 材料推送时间
     skip_three: false # 是否跳过三星武器
 image:
   FilckrImg:
-    api_keys: # filckr api 
+    api_keys: # filckr api
     - xxxx
     cnt: 5 # 默认返回的图片最大数量 下同
   WebSearchImg:
-    api_keys: # websearch api 
+    api_keys: # websearch api
     - xxx
   align_prompt: 帮我生成一个适配<QUERY>的英文搜索文本，直接返回文本，不需要额外的文字： # 用chatgpt转译查询prompt
   default: filckr # 默认插图引擎 [filckr/websearch]
@@ -85,7 +85,7 @@ other:
     push_time: 30 # 开始推送的最小时间（默认30分钟，如有任务在30分钟内ddl，则触发提醒）
 extract:
   bilibili: # bilibili模块
-    display_image: true 
+    display_image: true
     display_image_list: true
 
 ```
@@ -141,7 +141,7 @@ extract:
 ## 关于聊天:
 
     1. 国内聊天
-    
+
         基于公共api获取回复，如果不配置openai和bing，不影响本功能使用。
         简单对话自动调用默认配置回复（下同）。
 
@@ -159,7 +159,7 @@ extract:
         6. 注意观察加载插件的时候, log会提示你加载了几个cookie
         7. 尽量保证EdgeGPT模块是最新(pip install EdgeGPT --upgrade)
 
-        使用了与Bing通讯的接口 [EdgeGPT](https://github.com/acheong08/EdgeGPT)  
+        使用了与Bing通讯的接口 [EdgeGPT](https://github.com/acheong08/EdgeGPT)
 
     3. openai
         1. openai_api_key请注册openai后在 https://beta.openai.com/account/api-keys 自己获取
@@ -170,8 +170,8 @@ extract:
         6. openai_api_key要求你填的是list, 创建会话的时候会随机从list选一个, 你可以填多个, 注意观察加载插件的时候, log会提示你加载了几个apikey
         7. 尽量保证revChatGPT模块是最新(pip install revChatGPT --upgrade)
 
-        使用了与openai通讯的接口 [ChatGPT](https://github.com/acheong08/ChatGPT)  
-    
+        使用了与openai通讯的接口 [ChatGPT](https://github.com/acheong08/ChatGPT)
+
     4. poe
         1. 由于poe自身限制，不支持多session会话，所有的会话都会出现在一个session中，可以参考poe官网的设计，因此这里并没有为每个user单独创建bot，而是共用一个bot
         2. poe响应失败会自动创建新的client，理论上不需要重置对话
@@ -181,17 +181,18 @@ extract:
         6. 为了防止和公共会话冲突，可以在默认引擎为poe的时候切换到私人会话，会自动为当前群聊/私聊创建一个专属机器人（Claude），并且后续可以一直使用（hash映射到固定的bot_id）
         7. 由于poe的bot管理比较复杂，这里推荐只使用一个key
         8. 为了安全起见，这里重置对话只有私人对话会调用poe接口清除上下文，其他都是假的重置（可以自己修改_create方法）
+        9. 目前已经支持poe，如果设置model为custom的话，会为每一个用户单独创建一个机器人，由于poe的并发和创建上限并没有测试，所以如果要使用这个场景请不要在很多用户的时候开启
 
     5. bing和openai的proxy配置
         1. 你需要使用v2ray或者clash等代理工具开启本地监听端口
-        2. 根据http和socks5的不同, 配置不同, 
+        2. 根据http和socks5的不同, 配置不同,
         3. 以v2rayN举例, 本地监听端口1080, 你应该配置成"socks5://127.0.0.1:1080"或者"http://127.0.0.1:1081"
-  
+
 ## 关于切换风格模块:
     1. 只支持Bing，Normal，Poe三个引擎切换风格，其他情况会给出提示
-    
+
     2. Bing有三种风格：1. 创造型，2. 平衡型 3. 精准型 详情参考Bing官网
-    
+
     3. Poe有六种风格：1. Sega，2. Claude 3. ChatGPT 4. NeevaAI 5. Dragonfly 6. 私人会话
 
     4. Normal有两种风格：1. 无人格 2. 预设人格 相当于清除人格操作
@@ -203,11 +204,11 @@ extract:
 
     api key的获取方式: https://www.flickr.com/services/apps/create/noncommercial/
 
-    
+
     2.基于Web Image Search的关键词搜索，每天固定100次免费搜索。
 
     注意，Web Image Search对英文query支持好，为了更好的搜索，首先使用chatgpt默认的国内对齐英文实体，再进行查询。如果要使用本功能，请先配置chat功能。
-    
+
     api key的获取方式: https://rapidapi.com/contextualwebsearch/api/web-search
 
     3. align_prompt可以自己修改prompt, 用<QUERY>占位即可
@@ -247,7 +248,7 @@ extract:
     1. 目前实现了两个功能 网址截图和bilibili视频解析 直接发送url即可
 
     2. 网址截图: 如果playwright出现报错的话，请自行升级内核或者更换playwright版本
-    
+
     3. bilibili视频解析 (初步测试 不保证完全适配)
 
     返回格式如下：

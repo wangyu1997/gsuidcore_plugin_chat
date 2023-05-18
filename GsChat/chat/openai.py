@@ -42,14 +42,14 @@ class OpenaiChat(BaseChat):
         except Exception as e:
             self.chat_dict[user_id]["isRunning"] = False
             await bot.send(
-                f'askError: {str(e)}多次askError请尝试发送"重置对话"',
+                f'askError: {str(e)}多次askError请尝试发送[重置对话]',
                 at_sender=True,
             )
             return
         self.chat_dict[user_id]["isRunning"] = False  # 将当前会话状态设置为未运行
         sessions_number = self.chat_dict[user_id]["sessions_number"]
-        data += f'\n\n当前会话: {sessions_number}   字数异常请发送"重置对话"'
-
+        if self.show:
+            data += f'\n\n当前会话: {sessions_number}   字数异常请发送[重置对话]'
         return data
 
     async def init_data(self):
@@ -61,3 +61,6 @@ class OpenaiChat(BaseChat):
             logger.warning("未检测到代理，国内用户可能无法使用openai功能")
 
         self.keys = config.api_keys
+
+    def get_style(self, _):
+        return "GPT-3.5"

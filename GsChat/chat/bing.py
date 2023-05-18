@@ -88,8 +88,9 @@ class BingChat(BaseChat):
                 await self.create(user_id, bot, event)
             except Exception:
                 return None
-        message = f"{rep_message}\n\n当前{current_conversation} 共 {max_conversation}"
-        return message
+        if self.show:
+            rep_message = f"{rep_message}\n\n当前{current_conversation} 共 {max_conversation} 字数异常请发送[重置对话]"
+        return rep_message
 
     async def init_data(self):
         cookie_path = self.res_path / "bing_cookies"
@@ -138,9 +139,23 @@ class BingChat(BaseChat):
         if user_id not in self.chat_dict:
             res = await self.create(user_id, bot, event)
             if res:
-                if self.config.show_create:
+                if self.show:
                     await bot.send(f"{self.config.name} 对话已创建")
             else:
                 return False, f"创建{self.config.name}对话失败"
         self.chat_dict[user_id]["model"] = style
         return True, style
+
+    def get_style(self, user_id):
+        """初始化cookie或者key"""
+        style_map = {
+            "creative": "创造型",
+            "balanced": "平衡型",
+            "precise": "精准型",
+        }
+
+        style = self.style
+        if user_id in self.chat_dict:
+            style = style_map[self.chat_dict[user_id]['model']]
+
+        return style
