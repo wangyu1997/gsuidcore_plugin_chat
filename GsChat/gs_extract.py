@@ -81,6 +81,21 @@ async def xhs(bot: Bot, event: Event) -> None:
         await bot.send("小红书解析出错啦")
 
 
+@extract_sv.on_regex(
+    ("weibo.com",),
+    block=True,
+)
+async def weibo(bot: Bot, event: Event) -> None:
+    msg: str = str(event.raw_text).strip()
+    reg = r"(http:|https:)\/\/(?:www\.)?weibo.com\/[A-Za-z\d._?%&+\-=\/#]*"
+    dou_url = re.search(reg, msg, re.I)[0]
+    try:
+        await general_extract(dou_url, bot)
+    except Exception as e:
+        logger.info(f"{type(e)}: {str(e)}")
+        await bot.send("微博解析出错啦")
+
+
 async def general_extract(link, bot):
     async with AsyncClient(timeout=None, verify=False) as client:
         url = "https://www.wouldmissyou.com/api/parse/"
