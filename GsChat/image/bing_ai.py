@@ -1,8 +1,8 @@
 import json
 
 from gsuid_core.bot import Bot
-from ImageGen import ImageGenAsync
 from gsuid_core.logger import logger
+from EdgeGPT.ImageGen import ImageGenAsync
 from gsuid_core.data_store import get_res_path
 
 from .build import IMAGE

@@ -5,10 +5,13 @@ import time
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 from gsuid_core.logger import logger
-from EdgeGPT import Chatbot as bingChatbot
+from EdgeGPT.EdgeGPT import ConversationStyle
+from EdgeGPT.EdgeGPT import Chatbot as bingChatbot
 
 from .build import CHAT
 from .base import BaseChat
+
+ConversationStyle
 
 
 @CHAT.register_module()
@@ -17,13 +20,24 @@ class BingChat(BaseChat):
         super(BingChat, self).__init__(config)
         self.style = self.config.style
 
+    def choose_style(self, style):
+        # "creative", "balanced", "precise"
+        if style == "creative":
+            return ConversationStyle.creative
+        elif style == "balanced":
+            return ConversationStyle.balanced
+        elif style == "precise":
+            return ConversationStyle.precise
+        else:
+            return ConversationStyle.creative
+
     async def _create(self, user_id):
         current_time: int = int(time.time())
         chat_bot = bingChatbot(cookies=self._get_random_key())
         self.chat_dict[user_id] = {
             "chatbot": chat_bot,
             "last_time": current_time,
-            "model": self.style,
+            "model": self.choose_style(self.style),
             "isRunning": False,
         }
 
@@ -35,7 +49,7 @@ class BingChat(BaseChat):
 
         try:
             data = await chatbot.ask(
-                prompt=msg, conversation_style=style
+                prompt=msg, conversation_style=self.choose_style(style)
             )
         except Exception as e:
             self.chat_dict[user_id]["isRunning"] = False

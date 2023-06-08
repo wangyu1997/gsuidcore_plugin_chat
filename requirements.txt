@@ -1,9 +1,9 @@
-EdgeGPT==0.4.2
-httpx==0.24.0
-ImageGen==0.2
+EdgeGPT==0.10.7
+httpx==0.24.1
 Jinja2==3.1.2
 Pillow==9.5.0
-playwright==1.29.1
-poe_api==0.3.1
-revChatGPT==5.0.2
+Pillow==9.5.0
+playwright==1.32.1
+poe-api==0.4.5
+revChatGPT==6.1.2
 yacs==0.1.8
