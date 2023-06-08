@@ -11,8 +11,6 @@ from EdgeGPT.EdgeGPT import Chatbot as bingChatbot
 from .build import CHAT
 from .base import BaseChat
 
-ConversationStyle
-
 
 @CHAT.register_module()
 class BingChat(BaseChat):
